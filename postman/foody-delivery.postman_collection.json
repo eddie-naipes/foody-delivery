@@ -1,0 +1,534 @@
+{
+  "info": {
+    "name": "Foody Delivery API",
+    "description": "Fluxo completo da API (autenticação, pedidos e status) e todos os cenários de erro. Rode na ordem: as requisições compartilham token e id do pedido via variáveis da coleção.\n\nnpx newman run postman/foody-delivery.postman_collection.json -e postman/local.postman_environment.json",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Resposta é JSON quando há corpo', () => {",
+          "  if (pm.response.text().length > 0) {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "  }",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Cadastro",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('email', `operador.${Date.now()}@foody.com`);",
+                  "pm.collectionVariables.set('password', 'secret123');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devolve token e usuário, sem senha', () => {",
+                  "  pm.expect(body.token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body.user.email).to.eql(pm.collectionVariables.get('email'));",
+                  "  pm.expect(body.user).to.not.have.property('password');",
+                  "});",
+                  "pm.collectionVariables.set('token', body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Operador\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Cadastro com e-mail duplicado → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('Mensagem de e-mail em uso', () => pm.expect(pm.response.json().message).to.eql('E-mail já cadastrado'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Outro\",\n  \"email\": \"{{email}}\",\n  \"password\": \"outrasenha\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Cadastro inválido → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const fields = pm.response.json().fieldErrors.map(e => e.field);",
+                  "pm.test('Aponta nome, e-mail e senha', () => pm.expect(fields).to.include.members(['name', 'email', 'password']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"nao-e-email\",\n  \"password\": \"123\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login (e-mail com espaços e maiúsculas)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('messyEmail', `  ${pm.collectionVariables.get('email').toUpperCase()}  `);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('E-mail normalizado', () => pm.expect(body.user.email).to.eql(pm.collectionVariables.get('email')));",
+                  "pm.collectionVariables.set('token', body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{messyEmail}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Login com senha errada → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Mensagem genérica', () => pm.expect(pm.response.json().message).to.eql('E-mail ou senha inválidos'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"senha-errada\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "Listar sem token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('Pede autenticação', () => pm.expect(pm.response.json().message).to.eql('Autenticação necessária'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Listar com token adulterado → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.variables.set('tamperedToken', token.slice(0, -2) + (token.endsWith('AA') ? 'BB' : 'AA'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{tamperedToken}}" }],
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Criar pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('Header Location aponta para o pedido', () => pm.expect(pm.response.headers.get('Location')).to.match(new RegExp(`/api/orders/${body.id}$`)));",
+                  "pm.test('Nasce RECEBIDO', () => pm.expect(body.status).to.eql('RECEBIDO'));",
+                  "pm.test('CEP normalizado', () => pm.expect(body.deliveryAddress.zipCode).to.eql('01310100'));",
+                  "pm.test('Acentos preservados', () => pm.expect(body.deliveryAddress.city).to.eql('São Paulo'));",
+                  "pm.test('Subtotais e total calculados', () => {",
+                  "  pm.expect(body.items[0].subtotal).to.eql(90.00);",
+                  "  pm.expect(body.totalAmount).to.eql(99.90);",
+                  "});",
+                  "pm.test('Criado pelo usuário logado', () => pm.expect(body.createdBy.name).to.eql('Operador'));",
+                  "pm.collectionVariables.set('orderId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Maria Silva\",\n  \"customerPhone\": \"11999998888\",\n  \"deliveryAddress\": {\n    \"street\": \"Av. Paulista\",\n    \"number\": \"1000\",\n    \"complement\": \"Apto 12\",\n    \"neighborhood\": \"Bela Vista\",\n    \"city\": \"São Paulo\",\n    \"zipCode\": \"01310-100\"\n  },\n  \"items\": [\n    { \"name\": \"Pizza Margherita\", \"quantity\": 2, \"unitPrice\": 45.00 },\n    { \"name\": \"Refrigerante\", \"quantity\": 1, \"unitPrice\": 9.90 }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Criar pedido sem itens → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const errors = pm.response.json().fieldErrors;",
+                  "pm.test('Aponta itens e CEP', () => pm.expect(errors.map(e => e.field)).to.include.members(['items', 'deliveryAddress.zipCode']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Maria\",\n  \"customerPhone\": \"1199\",\n  \"deliveryAddress\": {\n    \"street\": \"Rua\", \"number\": \"1\", \"neighborhood\": \"Centro\",\n    \"city\": \"SP\", \"zipCode\": \"0131-0100\"\n  },\n  \"items\": []\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Criar pedido com item nulo → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request (e não 500)', () => pm.response.to.have.status(400));",
+                  "pm.test('Aponta o item', () => pm.expect(pm.response.json().fieldErrors.map(e => e.field)).to.include('items[0]'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Maria\",\n  \"customerPhone\": \"1199\",\n  \"deliveryAddress\": {\n    \"street\": \"Rua\", \"number\": \"1\", \"neighborhood\": \"Centro\",\n    \"city\": \"SP\", \"zipCode\": \"01001000\"\n  },\n  \"items\": [null]\n}"
+            },
+            "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Buscar pedido por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('É o pedido criado', () => pm.expect(body.id).to.eql(pm.collectionVariables.get('orderId')));",
+                  "pm.test('Valores monetários com 2 casas após ler do banco', () => pm.expect(pm.response.text()).to.include('\"unitPrice\":45.00'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Buscar pedido inexistente → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('Mensagem com o id', () => pm.expect(pm.response.json().message).to.eql('Pedido 999999 não encontrado'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/orders/999999"
+          }
+        },
+        {
+          "name": "Buscar com id não numérico → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('Aponta o parâmetro', () => pm.expect(pm.response.json().message).to.eql('Parâmetro inválido: id'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/orders/abc"
+          }
+        },
+        {
+          "name": "Status → EM_PREPARO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado', () => pm.expect(pm.response.json().status).to.eql('EM_PREPARO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"EM_PREPARO\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Status → SAIU_PARA_ENTREGA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado', () => pm.expect(pm.response.json().status).to.eql('SAIU_PARA_ENTREGA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"SAIU_PARA_ENTREGA\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Status → ENTREGUE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado', () => pm.expect(pm.response.json().status).to.eql('ENTREGUE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"ENTREGUE\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Cancelar pedido entregue → 422",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable', () => pm.response.to.have.status(422));",
+                  "pm.test('Explica a transição', () => pm.expect(pm.response.json().message).to.eql('Transição de ENTREGUE para CANCELADO não permitida'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"CANCELADO\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Status desconhecido → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('Lista os valores aceitos', () => pm.expect(body.message).to.include('RECEBIDO, EM_PREPARO, SAIU_PARA_ENTREGA, ENTREGUE, CANCELADO'));",
+                  "pm.test('Aponta o campo status', () => pm.expect(body.fieldErrors[0].field).to.eql('status'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{ \"status\": \"PRONTO\" }" },
+            "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
+          }
+        },
+        {
+          "name": "Listar pedidos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Pedido mais recente primeiro, com status atual', () => {",
+                  "  pm.expect(body[0].id).to.eql(pm.collectionVariables.get('orderId'));",
+                  "  pm.expect(body[0].status).to.eql('ENTREGUE');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/orders"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "email", "value": "" },
+    { "key": "password", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "orderId", "value": "" }
+  ]
+}

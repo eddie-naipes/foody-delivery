@@ -4,7 +4,7 @@ Sistema simplificado de rastreamento de pedidos de delivery: usuários autentica
 
 | Parte | Stack | Pasta |
 |---|---|---|
-| API REST | Java 21 · Spring Boot 4.0 · Spring Security (JWT) · JPA/Hibernate · SQLite | [`backend/`](backend) |
+| API REST | Java 21 · Spring Boot 4.0 · Spring Security (JWT) · JPA/Hibernate · SQLite · MapStruct · Lombok | [`backend/`](backend) |
 | Interface web | React | `frontend/` *(em construção)* |
 
 ---
@@ -38,6 +38,15 @@ cd backend
 ```
 
 Roda os testes unitários e de integração (MockMvc + SQLite em memória) e **falha o build se a cobertura de linhas ou branches ficar abaixo de 100%** (JaCoCo). Relatório: `backend/target/site/jacoco/index.html`.
+
+### Testes de API (Postman/Newman)
+
+A coleção em [`postman/`](postman) percorre o fluxo completo contra a API rodando — cadastro, login, criação do pedido, avanço de status até `ENTREGUE` — e cada cenário de erro (400, 401, 404, 409, 422), com 63 asserções. Pode ser importada no Postman ou executada pela linha de comando (requer Node.js):
+
+```bash
+# com a API rodando em http://localhost:8080
+npx newman run postman/foody-delivery.postman_collection.json -e postman/local.postman_environment.json
+```
 
 ### Endpoints
 
@@ -122,7 +131,7 @@ Todos os erros seguem o mesmo formato:
 
 | Situação | HTTP |
 |---|---|
-| Validação, JSON inválido, status desconhecido, id não numérico | `400` |
+| Validação, JSON inválido, status desconhecido (a resposta lista os aceitos), id não numérico | `400` |
 | Sem token, token inválido/expirado, credenciais inválidas | `401` |
 | Pedido ou rota inexistente | `404` |
 | E-mail já cadastrado | `409` |
@@ -134,6 +143,11 @@ Todos os erros seguem o mesmo formato:
 - **Arquitetura MVC por camadas** (`controller → service → repository → model`): simples e familiar para o tamanho do projeto.
 - **Regras de negócio no domínio**: a máquina de estados vive no enum `OrderStatus` e o total é calculado pelo `Order` (não é persistido, para nunca ficar inconsistente com os itens). O service só orquestra.
 - **DTOs como `record`**: a API nunca expõe entidades JPA; a senha jamais aparece em respostas.
+- **MapStruct** para converter entidades ↔ DTOs: código gerado em compilação (sem reflexão) e `unmappedTargetPolicy = ERROR`, então um campo esquecido quebra o build em vez de virar `null`.
+- **Lombok com moderação**: `@Getter` e construtor protegido nas entidades (sem `@Data`/setters — o status só muda por `changeStatus`), `@RequiredArgsConstructor` na injeção e `@Slf4j`. O código gerado é marcado para não contar na cobertura.
+- **Mensagens centralizadas** na classe `Messages`: todo texto devolvido pela API (inclusive de validação) é uma constante, reutilizada pelos testes.
+- **Exceções de negócio** estendem `ApiException`, que carrega o status HTTP — um único handler as trata.
+- **Logs de negócio** (cadastro, login, pedido criado, mudança de status, requisições rejeitadas) sem dados sensíveis: nunca senha, token ou dados pessoais do cliente.
 - **Normalização na entrada**: e-mail em minúsculas e sem espaços, CEP sem hífen (`01310-100` → `01310100`), textos com trim — feita nos próprios records, antes da validação.
 - **JWT stateless** (HS256, 8h, sem refresh token) com senhas em BCrypt.
 - **Cliente como dado do pedido**: o usuário logado é o operador; o pedido registra quem o criou (`createdBy`).
@@ -150,8 +164,11 @@ backend/src/main/java/com/foody/delivery
 ├── repository/   UserRepository, OrderRepository
 ├── model/        User, Order, OrderItem, Address, OrderStatus
 ├── dto/          request/ e response/ (records)
+├── mapper/       OrderMapper, UserMapper (MapStruct)
 ├── security/     JwtAuthenticationFilter, JwtAuthenticationEntryPoint
-└── exception/    GlobalExceptionHandler e exceções de negócio
+├── exception/    GlobalExceptionHandler, ApiException e subclasses
+├── validation/   @MaxBytes (limite de 72 bytes do BCrypt)
+└── util/         Messages
 ```
 
 ### Próximos passos
