@@ -18,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import com.foody.delivery.dto.request.AddressRequest;
 import com.foody.delivery.dto.request.CreateOrderRequest;
@@ -33,7 +35,7 @@ import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
 import com.foody.delivery.util.Messages;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ MockitoExtension.class, OutputCaptureExtension.class })
 class OrderServiceTest {
 
 	@Mock
@@ -71,6 +73,28 @@ class OrderServiceTest {
 		assertThat(order.getDeliveryAddress().getZipCode()).isEqualTo("01310100");
 		assertThat(order.getDeliveryAddress().getComplement()).isEqualTo("Apto 12");
 		assertThat(response.totalAmount()).isEqualByComparingTo("99.90");
+	}
+
+	@Test
+	void createLogsOrderWithoutCustomerPersonalData(CapturedOutput output) {
+		when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+		CreateOrderRequest request = new CreateOrderRequest("Maria Silva", "11999998888",
+				new AddressRequest("Rua A", "1", null, "Centro", "São Paulo", "01001000"),
+				List.of(new OrderItemRequest("Pizza", 2, new BigDecimal("45.00"))));
+
+		orderService.create(request, user);
+
+		assertThat(output).contains("Pedido criado").contains("itens=1");
+		assertThat(output).doesNotContain("Maria Silva").doesNotContain("11999998888");
+	}
+
+	@Test
+	void updateStatusLogsTransition(CapturedOutput output) {
+		when(orderRepository.findById(1L)).thenReturn(Optional.of(existingOrder()));
+
+		orderService.updateStatus(1L, OrderStatus.EM_PREPARO);
+
+		assertThat(output).contains("Status do pedido 1 alterado: RECEBIDO -> EM_PREPARO");
 	}
 
 	@Test

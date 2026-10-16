@@ -3,8 +3,12 @@ package com.foody.delivery.exception;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
@@ -12,6 +16,7 @@ import com.foody.delivery.dto.response.ApiError;
 import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.util.Messages;
 
+@ExtendWith(OutputCaptureExtension.class)
 class GlobalExceptionHandlerTest {
 
 	private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
@@ -24,6 +29,27 @@ class GlobalExceptionHandlerTest {
 		assertThat(response.getStatusCode().value()).isEqualTo(404);
 		assertThat(response.getBody().error()).isEqualTo("Not Found");
 		assertThat(response.getBody().message()).isEqualTo(Messages.ORDER_NOT_FOUND.formatted(7));
+	}
+
+	@Test
+	void businessExceptionIsLoggedAsWarning(CapturedOutput output) {
+		handler.handleApiException(new InvalidStatusTransitionException(OrderStatus.ENTREGUE, OrderStatus.RECEBIDO));
+
+		assertThat(output).contains("WARN").contains("422");
+	}
+
+	@Test
+	void rejectedLoginIsLoggedAsWarning(CapturedOutput output) {
+		handler.handleBadCredentials(new BadCredentialsException("bad"));
+
+		assertThat(output).contains("WARN").contains("Login recusado");
+	}
+
+	@Test
+	void unexpectedExceptionIsLoggedWithStackTrace(CapturedOutput output) {
+		handler.handleUnexpected(new IllegalStateException("falha simulada"));
+
+		assertThat(output).contains("ERROR").contains("falha simulada").contains("at com.foody");
 	}
 
 	@Test

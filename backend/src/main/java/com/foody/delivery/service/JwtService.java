@@ -18,10 +18,12 @@ import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Gera e valida tokens JWT (HS256). O subject do token é o e-mail do usuário.
  */
+@Slf4j
 @Service
 public class JwtService {
 
@@ -60,6 +62,7 @@ public class JwtService {
 			return Optional.of(parser.parseSignedClaims(token).getPayload().getSubject());
 		}
 		catch (JwtException | IllegalArgumentException ex) {
+			log.debug("Token JWT rejeitado: {}", ex.getClass().getSimpleName());
 			return Optional.empty();
 		}
 	}

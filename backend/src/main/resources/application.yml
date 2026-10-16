@@ -17,6 +17,13 @@ spring:
       # "id" sem tipo — que deixa de ser alias do rowid e fica NULL. "legacy" mantém a ordem declarada.
       hibernate.column_ordering_strategy: legacy
 
+logging:
+  level:
+    root: INFO
+    com.foody.delivery: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [%15.15thread] %-40.40logger{39} : %msg%n"
+
 app:
   jwt:
     # Em produção, defina a variável de ambiente JWT_SECRET (Base64, mínimo 32 bytes)

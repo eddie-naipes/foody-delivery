@@ -16,12 +16,14 @@ import com.foody.delivery.repository.OrderRepository;
 import com.foody.delivery.util.Messages;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Orquestra os casos de uso de pedidos. As regras de negócio (transição de status,
  * total) ficam nas entidades; aqui só se busca, delega e converte para DTO dentro da
  * transação.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -33,6 +35,8 @@ public class OrderService {
 	@Transactional
 	public OrderResponse create(CreateOrderRequest request, User createdBy) {
 		Order order = orderRepository.save(orderMapper.toEntity(request, createdBy));
+		log.info("Pedido criado: id={}, itens={}, criadoPor={}", order.getId(), order.getItems().size(),
+				createdBy.getId());
 		return orderMapper.toResponse(order);
 	}
 
@@ -49,7 +53,9 @@ public class OrderService {
 	@Transactional
 	public OrderResponse updateStatus(Long id, OrderStatus status) {
 		Order order = getOrder(id);
+		OrderStatus previous = order.getStatus();
 		order.changeStatus(status);
+		log.info("Status do pedido {} alterado: {} -> {}", id, previous, status);
 		// flush antecipado para que o updatedAt da resposta já reflita a alteração
 		orderRepository.flush();
 		return orderMapper.toResponse(order);

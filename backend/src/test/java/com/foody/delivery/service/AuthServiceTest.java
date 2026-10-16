@@ -15,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,7 +32,7 @@ import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 import com.foody.delivery.util.Messages;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({ MockitoExtension.class, OutputCaptureExtension.class })
 class AuthServiceTest {
 
 	@Mock
@@ -67,6 +69,17 @@ class AuthServiceTest {
 		assertThat(response.user().email()).isEqualTo("maria@foody.com");
 	}
 
+
+	@Test
+	void registerLogsWithoutPassword(CapturedOutput output) {
+		when(passwordEncoder.encode("secret123")).thenReturn("hashed");
+		when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+		authService.register(new RegisterRequest("Maria", "maria@foody.com", "secret123"));
+
+		assertThat(output).contains("Usuário cadastrado");
+		assertThat(output).doesNotContain("secret123").doesNotContain("hashed");
+	}
 
 	@Test
 	void registerRejectsDuplicateEmail() {

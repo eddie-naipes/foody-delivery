@@ -63,11 +63,13 @@ public class GlobalExceptionHandler {
 	/** Exceções de negócio: o status vem da própria exceção. */
 	@ExceptionHandler(ApiException.class)
 	public ResponseEntity<ApiError> handleApiException(ApiException ex) {
+		log.warn("Requisição rejeitada ({}): {}", ex.getStatus().value(), ex.getMessage());
 		return build(ApiError.of(ex.getStatus(), ex.getMessage()));
 	}
 
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
+		log.warn("Login recusado: credenciais inválidas");
 		return build(ApiError.of(HttpStatus.UNAUTHORIZED, Messages.INVALID_CREDENTIALS));
 	}
 

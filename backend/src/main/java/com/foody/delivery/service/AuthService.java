@@ -16,7 +16,9 @@ import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -38,6 +40,7 @@ public class AuthService {
 		}
 		User user = userRepository
 			.save(new User(request.name(), request.email(), passwordEncoder.encode(request.password())));
+		log.info("Usuário cadastrado: id={}", user.getId());
 		return toResponse(user);
 	}
 
@@ -48,7 +51,9 @@ public class AuthService {
 	public AuthResponse login(LoginRequest request) {
 		Authentication authentication = authenticationManager.authenticate(
 				UsernamePasswordAuthenticationToken.unauthenticated(request.email(), request.password()));
-		return toResponse((User) authentication.getPrincipal());
+		User user = (User) authentication.getPrincipal();
+		log.info("Login realizado: usuário id={}", user.getId());
+		return toResponse(user);
 	}
 
 	private AuthResponse toResponse(User user) {
