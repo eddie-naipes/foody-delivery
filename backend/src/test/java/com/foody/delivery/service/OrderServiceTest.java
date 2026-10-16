@@ -77,7 +77,7 @@ class OrderServiceTest {
 	void findAllReturnsOrdersFromRepositoryInOrder() {
 		Order first = existingOrder();
 		Order second = existingOrder();
-		when(orderRepository.findAllByOrderByCreatedAtDescIdDesc()).thenReturn(List.of(second, first));
+		when(orderRepository.findAllNewestFirst()).thenReturn(List.of(second, first));
 
 		assertThat(orderService.findAll()).hasSize(2);
 	}

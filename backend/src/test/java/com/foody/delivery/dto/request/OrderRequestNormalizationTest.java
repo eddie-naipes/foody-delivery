@@ -22,6 +22,11 @@ class OrderRequestNormalizationTest {
 	}
 
 	@Test
+	void addressRequestKeepsMisplacedHyphenForValidation() {
+		assertThat(new AddressRequest("Rua", "1", null, "Centro", "SP", "0131-0100").zipCode()).isEqualTo("0131-0100");
+	}
+
+	@Test
 	void addressRequestTurnsBlankComplementIntoNull() {
 		assertThat(new AddressRequest("Rua", "1", "   ", "Centro", "SP", "01001000").complement()).isNull();
 	}

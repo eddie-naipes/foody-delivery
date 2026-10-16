@@ -1,5 +1,7 @@
 package com.foody.delivery.mapper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import org.mapstruct.Mapper;
@@ -28,6 +30,14 @@ public interface OrderMapper {
 	List<OrderResponse> toResponses(List<Order> orders);
 
 	OrderResponse.CreatedBy toCreatedBy(User user);
+
+	/**
+	 * Valores monetários sempre com 2 casas: o SQLite devolve 45.00 como 45, e a API
+	 * deve responder de forma consistente.
+	 */
+	default BigDecimal toMoney(BigDecimal value) {
+		return value.setScale(2, RoundingMode.HALF_UP);
+	}
 
 	Address toEntity(AddressRequest request);
 

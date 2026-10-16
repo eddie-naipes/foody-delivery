@@ -213,14 +213,51 @@ class OrderControllerIT {
 	}
 
 	@Test
-	void patchWithUnknownStatusReturns400() throws Exception {
+	void patchWithUnknownStatusReturns400ListingAcceptedValues() throws Exception {
 		Integer id = createOrderAndGetId("Maria Silva");
 
 		patchStatus(id, """
 				{"status": "PRONTO"}
 				""")
 			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_ENUM_VALUE.formatted("status",
+					"RECEBIDO, EM_PREPARO, SAIU_PARA_ENTREGA, ENTREGUE, CANCELADO")))
+			.andExpect(jsonPath("$.fieldErrors[0].field").value("status"));
+	}
+
+	@Test
+	void patchWithMalformedJsonReturns400() throws Exception {
+		Integer id = createOrderAndGetId("Maria Silva");
+
+		patchStatus(id, "{\"status\": ")
+			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.message").value(Messages.MALFORMED_REQUEST));
+	}
+
+	@Test
+	void createWithNonNumericQuantityReturns400() throws Exception {
+		createOrder(VALID_ORDER.formatted("Maria").replace("\"quantity\": 2", "\"quantity\": \"duas\""))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(Messages.MALFORMED_REQUEST));
+	}
+
+	@Test
+	void createWithNullItemReturns400() throws Exception {
+		createOrder("""
+				{"customerName": "Maria", "customerPhone": "1199",
+				 "deliveryAddress": {"street": "Rua", "number": "1", "neighborhood": "Centro",
+				                     "city": "SP", "zipCode": "01001000"},
+				 "items": [null]}
+				""")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'items[0]')].message").value(hasItem(Messages.ITEM_REQUIRED)));
+	}
+
+	@Test
+	void createWithMisplacedZipHyphenReturns400() throws Exception {
+		createOrder(VALID_ORDER.formatted("Maria").replace("01310-100", "0131-0100"))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("deliveryAddress.zipCode")));
 	}
 
 	@Test

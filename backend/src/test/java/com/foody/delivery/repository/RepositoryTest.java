@@ -48,7 +48,7 @@ class RepositoryTest {
 		Order first = orderRepository.save(newOrder("Primeiro"));
 		Order second = orderRepository.save(newOrder("Segundo"));
 
-		assertThat(orderRepository.findAllByOrderByCreatedAtDescIdDesc())
+		assertThat(orderRepository.findAllNewestFirst())
 			.extracting(Order::getId)
 			.containsExactly(second.getId(), first.getId());
 	}

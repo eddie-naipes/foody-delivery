@@ -21,7 +21,7 @@ public record CreateOrderRequest(
 		AddressRequest deliveryAddress,
 
 		@NotEmpty(message = Messages.ITEMS_REQUIRED)
-		List<@Valid OrderItemRequest> items) {
+		List<@NotNull(message = Messages.ITEM_REQUIRED) @Valid OrderItemRequest> items) {
 
 	public CreateOrderRequest {
 		customerName = InputNormalizer.trim(customerName);

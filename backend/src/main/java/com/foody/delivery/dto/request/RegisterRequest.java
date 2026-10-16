@@ -1,6 +1,7 @@
 package com.foody.delivery.dto.request;
 
 import com.foody.delivery.util.Messages;
+import com.foody.delivery.validation.MaxBytes;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +18,7 @@ public record RegisterRequest(
 
 		@NotBlank(message = Messages.PASSWORD_REQUIRED)
 		@Size(min = 6, message = Messages.PASSWORD_MIN_LENGTH)
+		@MaxBytes(value = 72, message = Messages.PASSWORD_TOO_LONG)
 		String password) {
 
 	public RegisterRequest {

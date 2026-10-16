@@ -1,6 +1,9 @@
 package com.foody.delivery.exception;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import com.foody.delivery.dto.response.ApiError;
 import com.foody.delivery.util.Messages;
 
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 /**
  * Converte exceções em respostas no formato padrão {@link ApiError}.
@@ -34,9 +39,24 @@ public class GlobalExceptionHandler {
 		return build(ApiError.of(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED, fieldErrors));
 	}
 
-	/** JSON malformado ou valor desconhecido de enum (ex.: status "PRONTO"). */
+	/**
+	 * JSON malformado, ou valor fora do enum (ex.: status "PRONTO") — neste caso a
+	 * resposta diz qual campo está errado e quais valores são aceitos.
+	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ApiError> handleNotReadable(HttpMessageNotReadableException ex) {
+		if (ex.getCause() instanceof InvalidFormatException invalid && invalid.getTargetType().isEnum()) {
+			String field = invalid.getPath()
+				.stream()
+				.map(JacksonException.Reference::getPropertyName)
+				.filter(Objects::nonNull)
+				.collect(Collectors.joining("."));
+			String accepted = Arrays.stream(invalid.getTargetType().getEnumConstants())
+				.map(String::valueOf)
+				.collect(Collectors.joining(", "));
+			String message = Messages.INVALID_ENUM_VALUE.formatted(field, accepted);
+			return build(ApiError.of(HttpStatus.BAD_REQUEST, message, List.of(new ApiError.FieldError(field, message))));
+		}
 		return build(ApiError.of(HttpStatus.BAD_REQUEST, Messages.MALFORMED_REQUEST));
 	}
 

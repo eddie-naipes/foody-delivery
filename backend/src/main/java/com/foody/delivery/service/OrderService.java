@@ -38,7 +38,7 @@ public class OrderService {
 
 	@Transactional(readOnly = true)
 	public List<OrderResponse> findAll() {
-		return orderMapper.toResponses(orderRepository.findAllByOrderByCreatedAtDescIdDesc());
+		return orderMapper.toResponses(orderRepository.findAllNewestFirst());
 	}
 
 	@Transactional(readOnly = true)

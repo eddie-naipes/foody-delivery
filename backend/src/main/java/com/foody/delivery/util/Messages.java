@@ -15,12 +15,14 @@ public final class Messages {
 	public static final String EMAIL_INVALID = "E-mail inválido";
 	public static final String PASSWORD_REQUIRED = "Senha é obrigatória";
 	public static final String PASSWORD_MIN_LENGTH = "Senha deve ter no mínimo 6 caracteres";
+	public static final String PASSWORD_TOO_LONG = "Senha muito longa (máximo de 72 bytes)";
 
 	// --- Validação: pedido ---
 	public static final String CUSTOMER_NAME_REQUIRED = "Nome do cliente é obrigatório";
 	public static final String CUSTOMER_PHONE_REQUIRED = "Telefone do cliente é obrigatório";
 	public static final String DELIVERY_ADDRESS_REQUIRED = "Endereço de entrega é obrigatório";
 	public static final String ITEMS_REQUIRED = "O pedido deve ter ao menos um item";
+	public static final String ITEM_REQUIRED = "Item não pode ser nulo";
 	public static final String ITEM_NAME_REQUIRED = "Nome do item é obrigatório";
 	public static final String QUANTITY_REQUIRED = "Quantidade é obrigatória";
 	public static final String QUANTITY_MIN = "Quantidade deve ser no mínimo 1";
@@ -40,6 +42,7 @@ public final class Messages {
 	// --- Erros da API ---
 	public static final String VALIDATION_FAILED = "Dados inválidos";
 	public static final String MALFORMED_REQUEST = "Corpo da requisição inválido";
+	public static final String INVALID_ENUM_VALUE = "Valor inválido para '%s'. Valores aceitos: %s";
 	public static final String INVALID_PARAMETER = "Parâmetro inválido: %s";
 	public static final String AUTHENTICATION_REQUIRED = "Autenticação necessária";
 	public static final String INVALID_CREDENTIALS = "E-mail ou senha inválidos";

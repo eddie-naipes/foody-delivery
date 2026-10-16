@@ -10,9 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -22,6 +28,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.foody.delivery.repository.OrderRepository;
 import com.foody.delivery.repository.UserRepository;
+import com.foody.delivery.service.JwtService;
 import com.foody.delivery.util.Messages;
 import com.jayway.jsonpath.JsonPath;
 
@@ -38,6 +45,9 @@ class AuthControllerIT {
 
 	@Autowired
 	private OrderRepository orderRepository;
+
+	@Value("${app.jwt.secret}")
+	private String jwtSecret;
 
 	@BeforeEach
 	void cleanDatabase() {
@@ -86,6 +96,26 @@ class AuthControllerIT {
 			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("name")))
 			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("email")))
 			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("password")));
+	}
+
+	@Test
+	void registerWithPasswordOver72BytesReturns400() throws Exception {
+		register("Maria", "maria@foody.com", "á".repeat(40))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'password')].message")
+				.value(hasItem(Messages.PASSWORD_TOO_LONG)));
+	}
+
+	@Test
+	void protectedRouteWithExpiredTokenReturns401() throws Exception {
+		register("Maria", "maria@foody.com", "secret123");
+		Clock nineHoursAgo = Clock.fixed(Instant.now().minus(Duration.ofHours(9)), ZoneOffset.UTC);
+		String expired = new JwtService(jwtSecret, Duration.ofHours(8), nineHoursAgo)
+			.generateToken(userRepository.findByEmail("maria@foody.com").orElseThrow());
+
+		mockMvc.perform(get("/api/orders").header("Authorization", "Bearer " + expired))
+			.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.message").value(Messages.AUTHENTICATION_REQUIRED));
 	}
 
 	@Test

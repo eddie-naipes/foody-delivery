@@ -58,6 +58,19 @@ class OrderMapperTest {
 	}
 
 	@Test
+	void toResponseAlwaysReturnsMoneyWithTwoDecimals() {
+		// O SQLite devolve 45.00 como 45: a resposta precisa manter o formato monetário
+		Order order = new Order("Maria", "1199", new Address("Rua", "1", null, "Centro", "SP", "01001000"), user);
+		order.addItem(new OrderItem("Pizza", 2, new BigDecimal("45")));
+
+		OrderResponse response = mapper.toResponse(order);
+
+		assertThat(response.items().get(0).unitPrice()).hasToString("45.00");
+		assertThat(response.items().get(0).subtotal()).hasToString("90.00");
+		assertThat(response.totalAmount()).hasToString("90.00");
+	}
+
+	@Test
 	void toEntityBuildsOrderWithAddressItemsAndCreator() {
 		CreateOrderRequest request = new CreateOrderRequest("Maria Silva", "11999998888",
 				new AddressRequest("Av. Paulista", "1000", "Apto 12", "Bela Vista", "São Paulo", "01310-100"),
