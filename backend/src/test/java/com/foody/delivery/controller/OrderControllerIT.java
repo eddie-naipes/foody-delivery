@@ -2,6 +2,7 @@ package com.foody.delivery.controller;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -227,6 +228,39 @@ class OrderControllerIT {
 		patchStatus(id, "{}")
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("status")));
+	}
+
+	@Test
+	void getByNonNumericIdReturns400() throws Exception {
+		mockMvc.perform(get("/api/orders/abc").header("Authorization", "Bearer " + token))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value("Parâmetro inválido: id"));
+	}
+
+	@Test
+	void unknownRouteReturns404() throws Exception {
+		mockMvc.perform(get("/api/unknown").header("Authorization", "Bearer " + token))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.message").value("Recurso não encontrado"));
+	}
+
+	@Test
+	void unsupportedMethodReturns405() throws Exception {
+		mockMvc.perform(delete("/api/orders/1").header("Authorization", "Bearer " + token))
+			.andExpect(status().isMethodNotAllowed())
+			.andExpect(jsonPath("$.message").value("Método não permitido"));
+	}
+
+	@Test
+	void validationErrorBodyHasStandardFormat() throws Exception {
+		createOrder("{}")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.status").value(400))
+			.andExpect(jsonPath("$.error").value("Bad Request"))
+			.andExpect(jsonPath("$.message").value("Dados inválidos"))
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'items')].message")
+				.value(hasItem("O pedido deve ter ao menos um item")))
+			.andExpect(jsonPath("$.timestamp").isNotEmpty());
 	}
 
 	@Test
