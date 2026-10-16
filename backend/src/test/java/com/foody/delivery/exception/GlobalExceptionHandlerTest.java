@@ -3,11 +3,13 @@ package com.foody.delivery.exception;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
-import com.foody.delivery.dto.response.ErrorResponse;
+import com.foody.delivery.dto.response.ApiError;
+import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.util.Messages;
 
 class GlobalExceptionHandlerTest {
@@ -15,8 +17,26 @@ class GlobalExceptionHandlerTest {
 	private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
 	@Test
+	void apiExceptionUsesItsOwnStatusAndMessage() {
+		ResponseEntity<ApiError> response = handler
+			.handleApiException(new ResourceNotFoundException(Messages.ORDER_NOT_FOUND.formatted(7)));
+
+		assertThat(response.getStatusCode().value()).isEqualTo(404);
+		assertThat(response.getBody().error()).isEqualTo("Not Found");
+		assertThat(response.getBody().message()).isEqualTo(Messages.ORDER_NOT_FOUND.formatted(7));
+	}
+
+	@Test
+	void businessExceptionsCarryTheirHttpStatus() {
+		assertThat(new ResourceNotFoundException("x").getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+		assertThat(new EmailAlreadyInUseException().getStatus()).isEqualTo(HttpStatus.CONFLICT);
+		assertThat(new InvalidStatusTransitionException(OrderStatus.ENTREGUE, OrderStatus.RECEBIDO).getStatus())
+			.isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+	}
+
+	@Test
 	void unexpectedExceptionReturns500WithoutDetails() {
-		ResponseEntity<ErrorResponse> response = handler
+		ResponseEntity<ApiError> response = handler
 			.handleUnexpected(new IllegalStateException("senha do banco: s3cr3t"));
 
 		assertThat(response.getStatusCode().value()).isEqualTo(500);
@@ -28,7 +48,7 @@ class GlobalExceptionHandlerTest {
 
 	@Test
 	void methodNotSupportedKeeps405() {
-		ResponseEntity<ErrorResponse> response = handler
+		ResponseEntity<ApiError> response = handler
 			.handleUnexpected(new HttpRequestMethodNotSupportedException("DELETE"));
 
 		assertThat(response.getStatusCode().value()).isEqualTo(405);
@@ -37,7 +57,7 @@ class GlobalExceptionHandlerTest {
 
 	@Test
 	void otherFrameworkErrorKeepsItsStatus() {
-		ResponseEntity<ErrorResponse> response = handler
+		ResponseEntity<ApiError> response = handler
 			.handleUnexpected(new HttpMediaTypeNotSupportedException("text/plain"));
 
 		assertThat(response.getStatusCode().value()).isEqualTo(415);

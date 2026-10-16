@@ -8,7 +8,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import com.foody.delivery.dto.response.ErrorResponse;
+import com.foody.delivery.dto.response.ApiError;
 import com.foody.delivery.util.Messages;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");
 		jsonMapper.writeValue(response.getOutputStream(),
-				ErrorResponse.of(HttpStatus.UNAUTHORIZED, Messages.AUTHENTICATION_REQUIRED));
+				ApiError.of(HttpStatus.UNAUTHORIZED, Messages.AUTHENTICATION_REQUIRED));
 	}
 
 }
