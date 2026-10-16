@@ -12,6 +12,10 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+    properties:
+      # A ordenação padrão do Hibernate 7 reordena colunas e, no dialeto SQLite, pode gerar
+      # "id" sem tipo — que deixa de ser alias do rowid e fica NULL. "legacy" mantém a ordem declarada.
+      hibernate.column_ordering_strategy: legacy
 
 app:
   jwt:
