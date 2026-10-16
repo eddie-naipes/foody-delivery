@@ -12,7 +12,7 @@ import type { CreateOrderInput } from './types'
  */
 const required = (message: string) => z.string().trim().min(1, message)
 
-const itemSchema = z.object({
+export const itemSchema = z.object({
   name: required(MESSAGES.itemNameRequired),
   quantity: z.string().refine((value) => /^\d+$/.test(value.trim()) && Number(value) >= 1, MESSAGES.quantityInvalid),
   unitPrice: z

@@ -13,7 +13,14 @@ import { TextField } from '@/shared/ui/TextField'
 import { addressLines } from '../address'
 import { Receipt, type ReceiptLine } from '../components/Receipt'
 import { useCreateOrder } from '../hooks'
-import { emptyItem, emptyOrderForm, orderFormSchema, toCreateOrderInput, type OrderFormValues } from '../schemas'
+import {
+  emptyItem,
+  emptyOrderForm,
+  itemSchema,
+  orderFormSchema,
+  toCreateOrderInput,
+  type OrderFormValues,
+} from '../schemas'
 
 export function NewOrderPage() {
   const navigate = useNavigate()
@@ -109,9 +116,10 @@ export function NewOrderPage() {
                 const itemErrors = errors.items?.[index]
                 return (
                   <li key={field.id} className="flex flex-col gap-2">
-                    <div className="grid grid-cols-[minmax(0,1fr)_80px_120px] items-start gap-3">
+                    <div className="grid grid-cols-2 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_80px_120px]">
                       <TextField
                         label={`Item ${position}`}
+                        className="col-span-2 sm:col-span-1"
                         placeholder="Ex.: Pizza margherita"
                         error={itemErrors?.name?.message}
                         {...form.register(`items.${index}.name`)}
@@ -174,12 +182,12 @@ export function NewOrderPage() {
 function LiveReceipt({ control }: { control: Control<OrderFormValues> }) {
   const values = useWatch({ control }) as OrderFormValues
 
-  const lines: ReceiptLine[] = (values.items ?? []).flatMap((item, index) => {
-    const quantity = Number(item.quantity)
-    const unitPrice = parseMoney(item.unitPrice ?? '')
-    const valid = item.name?.trim() && Number.isInteger(quantity) && quantity > 0 && unitPrice > 0
-    return valid ? [{ key: index, name: item.name.trim(), quantity, unitPrice }] : []
-  })
+  // Mesma regra do formulário: um item inválido (ex.: preço 9,999) não pode entrar no total
+  const lines: ReceiptLine[] = (values.items ?? []).flatMap((item, index) =>
+    itemSchema.safeParse(item).success
+      ? [{ key: index, name: item.name.trim(), quantity: Number(item.quantity), unitPrice: parseMoney(item.unitPrice) }]
+      : [],
+  )
   const total = lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
 
   return (

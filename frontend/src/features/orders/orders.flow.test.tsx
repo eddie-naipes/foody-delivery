@@ -99,6 +99,21 @@ describe('novo pedido', () => {
     expect(within(receipt).getByTestId('receipt-total')).toHaveTextContent('99,90')
   })
 
+  it('deixa fora da comanda o item com valor inválido', async () => {
+    const operator = seedUser()
+    const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
+
+    await user.type(await screen.findByLabelText('Item 1'), 'Pizza')
+    await user.type(screen.getByLabelText('Preço unitário do item 1'), '45,00')
+    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
+    await user.type(screen.getByLabelText('Item 2'), 'Refrigerante')
+    await user.type(screen.getByLabelText('Preço unitário do item 2'), '9,999')
+
+    const receipt = screen.getByRole('region', { name: 'Comanda' })
+    expect(within(receipt).queryByText('Refrigerante')).not.toBeInTheDocument()
+    expect(within(receipt).getByTestId('receipt-total')).toHaveTextContent('45,00')
+  })
+
   it('remove um item da lista', async () => {
     const operator = seedUser()
     const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
@@ -180,21 +195,24 @@ describe('detalhe do pedido', () => {
 
     expect(await screen.findByText('Pedido cancelado')).toBeInTheDocument()
     expect(db.orders[0]?.status).toBe('CANCELADO')
+    // O trilho já diz que foi cancelado: sem uma terceira mensagem repetindo o mesmo
+    expect(screen.getByText('Este pedido foi cancelado.')).toBeInTheDocument()
+    expect(screen.queryByText(/Não há mais etapas/)).not.toBeInTheDocument()
   })
 
-  it('mostra a recusa da API quando a transição não é mais permitida', async () => {
+  it('recarrega o pedido quando outra pessoa já mudou o status', async () => {
     const operator = seedUser()
-    seedOrder(operator)
-    server.use(
-      http.patch('*/api/orders/:id/status', () =>
-        apiError(422, 'Transição de ENTREGUE para EM_PREPARO não permitida'),
-      ),
-    )
+    const order = seedOrder(operator, { status: 'EM_PREPARO' })
     const { user } = renderApp({ route: '/pedidos/1', loggedAs: operator })
+    await screen.findByRole('button', { name: 'Enviar para entrega' })
 
-    await user.click(await screen.findByRole('button', { name: 'Iniciar preparo' }))
+    // Outro operador avança o pedido enquanto esta tela está aberta
+    order.status = 'SAIU_PARA_ENTREGA'
+    await user.click(screen.getByRole('button', { name: 'Enviar para entrega' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Transição de ENTREGUE para EM_PREPARO não permitida')
+    expect(await screen.findByRole('alert')).toHaveTextContent(MESSAGES.orderChangedElsewhere)
+    expect(await screen.findByRole('button', { name: 'Marcar como entregue' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Pedido #0001' }).parentElement).toHaveTextContent('Saiu para entrega')
   })
 
   it('avisa quando o pedido não existe', async () => {

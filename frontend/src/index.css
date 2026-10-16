@@ -58,7 +58,8 @@
     background-image:
       linear-gradient(45deg, var(--color-paper) 50%, transparent 50%),
       linear-gradient(-45deg, var(--color-paper) 50%, transparent 50%);
-    background-position: 0 6px;
+    /* metade superior do ladrilho: dentes apontando para cima */
+    background-position: 0 0;
   }
 
   .ticket::after {
@@ -66,7 +67,8 @@
     background-image:
       linear-gradient(135deg, var(--color-paper) 50%, transparent 50%),
       linear-gradient(-135deg, var(--color-paper) 50%, transparent 50%);
-    background-position: 0 0;
+    /* metade inferior do ladrilho: dentes apontando para baixo */
+    background-position: 0 -6px;
   }
 
   .ticket-rule {

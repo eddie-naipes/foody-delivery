@@ -6,6 +6,7 @@ export const MESSAGES = {
   networkError: 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.',
   unexpectedError: 'Algo deu errado do nosso lado. Tente de novo em instantes.',
   sessionExpired: 'Sua sessão expirou. Entre de novo para continuar.',
+  orderChangedElsewhere: 'Este pedido foi atualizado por outra pessoa. A tela já mostra a etapa atual; confira antes de continuar.',
 
   nameRequired: 'Informe seu nome',
   nameTooLong: 'Use no máximo 100 caracteres',

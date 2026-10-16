@@ -46,5 +46,7 @@ export function useUpdateOrderStatus(id: number) {
       queryClient.setQueryData(orderKeys.detail(String(order.id)), order)
       void queryClient.invalidateQueries({ queryKey: orderKeys.list() })
     },
+    // Recusa costuma significar que a tela está desatualizada (outra pessoa mudou o pedido): busca o estado real
+    onError: () => queryClient.invalidateQueries({ queryKey: orderKeys.all }),
   })
 }

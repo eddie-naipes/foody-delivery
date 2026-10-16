@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { formatDateTime, formatMoney, formatOrderNumber } from '@/shared/lib/format'
+import { formatDateTime, formatMoney, formatOrderNumber, formatPhone } from '@/shared/lib/format'
 
 export interface ReceiptLine {
   key: string | number
@@ -46,7 +46,7 @@ export function Receipt({
 
       <div className="ticket-rule mt-4 pt-3">
         <p className="text-[15px] font-semibold">{customerName || 'Cliente'}</p>
-        {customerPhone ? <p className="text-muted">{customerPhone}</p> : null}
+        {customerPhone ? <p className="text-muted">{formatPhone(customerPhone)}</p> : null}
         {addressLines.map((line) => (
           <p key={line} className="text-muted">
             {line}

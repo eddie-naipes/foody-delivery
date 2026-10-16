@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { isAxiosError } from 'axios'
 
 import { toApiError } from './errors'
 
@@ -36,8 +36,10 @@ http.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     const apiError = toApiError(error)
-    // 401 com token enviado = sessão inválida. Sem token (ex.: login errado) é só credencial recusada.
-    if (apiError.status === 401 && authToken) {
+    // 401 em rota protegida = sessão inválida (token expirado, adulterado ou ausente).
+    // Em /auth/* o 401 é só credencial recusada no login e não deve encerrar nada.
+    const url = isAxiosError(error) ? (error.config?.url ?? '') : ''
+    if (apiError.status === 401 && !url.startsWith('/auth/')) {
       sessionRejectedListeners.forEach((listener) => listener())
     }
     return Promise.reject(apiError)

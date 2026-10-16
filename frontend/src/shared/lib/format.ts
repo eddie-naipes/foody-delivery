@@ -14,6 +14,14 @@ export function formatDateTime(iso: string): string {
   return dateTime.format(new Date(iso))
 }
 
+/** Telefone brasileiro com DDD (10 ou 11 dígitos) no formato de leitura; outros ficam como vieram. */
+export function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return phone
+}
+
 /** Aceita "45,90", "45.9" e "1.234,50" (padrão brasileiro). Devolve NaN se não for número. */
 export function parseMoney(input: string): number {
   const value = input.trim()

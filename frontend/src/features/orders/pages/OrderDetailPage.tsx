@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
+import { toApiError } from '@/shared/api/errors'
+import { MESSAGES } from '@/shared/messages'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
 import { formatDateTime, formatOrderNumber } from '@/shared/lib/format'
@@ -71,7 +73,8 @@ function OrderDetail({ order }: { order: Order }) {
       await updateStatus.mutateAsync(status)
       setNotice(STATUS_META[status].done)
     } catch (cause) {
-      setError((cause as Error).message)
+      const apiError = toApiError(cause)
+      setError(apiError.status === 422 ? MESSAGES.orderChangedElsewhere : apiError.message)
     }
   }
 
@@ -99,11 +102,10 @@ function OrderDetail({ order }: { order: Order }) {
           {error ? <Alert tone="error">{error}</Alert> : null}
 
           {transitions.length === 0 ? (
-            <p className="text-[15px] text-muted">
-              {order.status === 'ENTREGUE'
-                ? 'Pedido concluído. Não há mais etapas.'
-                : 'Pedido encerrado. Não há mais etapas.'}
-            </p>
+            // Cancelado já é explicado pelo trilho; só a entrega concluída ganha uma linha própria
+            order.status === 'ENTREGUE' ? (
+              <p className="text-[15px] text-muted">Pedido concluído. Não há mais etapas.</p>
+            ) : null
           ) : confirmingCancel ? (
             <div className="flex flex-col gap-3 rounded-md bg-paper p-4 ring-1 ring-inset ring-danger/30">
               <p className="text-[15px]">

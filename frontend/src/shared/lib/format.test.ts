@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatMoney, formatOrderNumber, formatRelativeTime, parseMoney } from './format'
+import { formatMoney, formatOrderNumber, formatPhone, formatRelativeTime, parseMoney } from './format'
 
 describe('formatação', () => {
   it('formata moeda em reais', () => {
@@ -18,6 +18,13 @@ describe('formatação', () => {
     expect(parseMoney(' 1.234,50 ')).toBe(1234.5)
     expect(parseMoney('')).toBeNaN()
     expect(parseMoney('abc')).toBeNaN()
+  })
+
+  it('formata telefones brasileiros e mantém o resto como veio', () => {
+    expect(formatPhone('11988887777')).toBe('(11) 98888-7777')
+    expect(formatPhone('1133334444')).toBe('(11) 3333-4444')
+    expect(formatPhone('(11) 98888-7777')).toBe('(11) 98888-7777')
+    expect(formatPhone('+1 555 0100')).toBe('+1 555 0100')
   })
 
   it('mostra há quanto tempo em português', () => {

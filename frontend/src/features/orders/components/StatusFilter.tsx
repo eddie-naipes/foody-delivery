@@ -24,7 +24,7 @@ export function StatusFilter({ orders, value, onChange }: StatusFilterProps) {
   ]
 
   return (
-    <div role="group" aria-label="Filtrar por status" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <div role="group" aria-label="Filtrar por status" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {options.map((option) => {
         const active = option.value === value
         return (
