@@ -5,13 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.foody.delivery.dto.request.AddressRequest;
 import com.foody.delivery.dto.request.CreateOrderRequest;
 import com.foody.delivery.dto.response.OrderResponse;
 import com.foody.delivery.exception.ResourceNotFoundException;
-import com.foody.delivery.model.Address;
+import com.foody.delivery.mapper.OrderMapper;
 import com.foody.delivery.model.Order;
-import com.foody.delivery.model.OrderItem;
 import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
@@ -29,25 +27,22 @@ public class OrderService {
 
 	private final OrderRepository orderRepository;
 
+	private final OrderMapper orderMapper;
+
 	@Transactional
 	public OrderResponse create(CreateOrderRequest request, User createdBy) {
-		AddressRequest address = request.deliveryAddress();
-		Order order = new Order(request.customerName(), request.customerPhone(),
-				new Address(address.street(), address.number(), address.complement(), address.neighborhood(),
-						address.city(), address.zipCode()),
-				createdBy);
-		request.items().forEach(item -> order.addItem(new OrderItem(item.name(), item.quantity(), item.unitPrice())));
-		return OrderResponse.from(orderRepository.save(order));
+		Order order = orderRepository.save(orderMapper.toEntity(request, createdBy));
+		return orderMapper.toResponse(order);
 	}
 
 	@Transactional(readOnly = true)
 	public List<OrderResponse> findAll() {
-		return orderRepository.findAllByOrderByCreatedAtDescIdDesc().stream().map(OrderResponse::from).toList();
+		return orderMapper.toResponses(orderRepository.findAllByOrderByCreatedAtDescIdDesc());
 	}
 
 	@Transactional(readOnly = true)
 	public OrderResponse findById(Long id) {
-		return OrderResponse.from(getOrder(id));
+		return orderMapper.toResponse(getOrder(id));
 	}
 
 	@Transactional
@@ -56,7 +51,7 @@ public class OrderService {
 		order.changeStatus(status);
 		// flush antecipado para que o updatedAt da resposta já reflita a alteração
 		orderRepository.flush();
-		return OrderResponse.from(order);
+		return orderMapper.toResponse(order);
 	}
 
 	private Order getOrder(Long id) {

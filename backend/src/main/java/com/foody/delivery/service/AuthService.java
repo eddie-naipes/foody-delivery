@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.foody.delivery.dto.request.LoginRequest;
 import com.foody.delivery.dto.request.RegisterRequest;
 import com.foody.delivery.dto.response.AuthResponse;
-import com.foody.delivery.dto.response.UserResponse;
 import com.foody.delivery.exception.EmailAlreadyInUseException;
+import com.foody.delivery.mapper.UserMapper;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 
@@ -28,6 +28,8 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 
 	private final JwtService jwtService;
+
+	private final UserMapper userMapper;
 
 	@Transactional
 	public AuthResponse register(RegisterRequest request) {
@@ -50,7 +52,7 @@ public class AuthService {
 	}
 
 	private AuthResponse toResponse(User user) {
-		return new AuthResponse(jwtService.generateToken(user), UserResponse.from(user));
+		return new AuthResponse(jwtService.generateToken(user), userMapper.toResponse(user));
 	}
 
 }

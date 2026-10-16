@@ -12,9 +12,11 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.foody.delivery.dto.request.AddressRequest;
@@ -23,6 +25,7 @@ import com.foody.delivery.dto.request.OrderItemRequest;
 import com.foody.delivery.dto.response.OrderResponse;
 import com.foody.delivery.exception.InvalidStatusTransitionException;
 import com.foody.delivery.exception.ResourceNotFoundException;
+import com.foody.delivery.mapper.OrderMapper;
 import com.foody.delivery.model.Address;
 import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderStatus;
@@ -34,6 +37,9 @@ class OrderServiceTest {
 
 	@Mock
 	private OrderRepository orderRepository;
+
+	@Spy
+	private OrderMapper orderMapper = Mappers.getMapper(OrderMapper.class);
 
 	@InjectMocks
 	private OrderService orderService;

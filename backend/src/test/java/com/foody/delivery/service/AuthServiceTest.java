@@ -9,9 +9,11 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,6 +25,7 @@ import com.foody.delivery.dto.request.LoginRequest;
 import com.foody.delivery.dto.request.RegisterRequest;
 import com.foody.delivery.dto.response.AuthResponse;
 import com.foody.delivery.exception.EmailAlreadyInUseException;
+import com.foody.delivery.mapper.UserMapper;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 
@@ -40,6 +43,9 @@ class AuthServiceTest {
 
 	@Mock
 	private JwtService jwtService;
+
+	@Spy
+	private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
 	@InjectMocks
 	private AuthService authService;
