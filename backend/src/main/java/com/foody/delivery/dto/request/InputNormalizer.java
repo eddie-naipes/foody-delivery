@@ -20,4 +20,14 @@ final class InputNormalizer {
 		return value == null ? null : value.trim().toLowerCase(Locale.ROOT);
 	}
 
+	/** Campo opcional: texto em branco vira nulo. */
+	static String optional(String value) {
+		return value == null || value.isBlank() ? null : value.trim();
+	}
+
+	/** Aceita "01310-100" ou "01310100" e guarda só os dígitos. */
+	static String zipCode(String value) {
+		return value == null ? null : value.trim().replace("-", "");
+	}
+
 }
