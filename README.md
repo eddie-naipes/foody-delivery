@@ -5,7 +5,35 @@ Sistema simplificado de rastreamento de pedidos de delivery: usuários autentica
 | Parte | Stack | Pasta |
 |---|---|---|
 | API REST | Java 21 · Spring Boot 4.0 · Spring Security (JWT) · JPA/Hibernate · SQLite · MapStruct · Lombok | [`backend/`](backend) |
-| Interface web | React | `frontend/` *(em construção)* |
+| Interface web | React 19 · TypeScript · Vite · TanStack Query · React Hook Form + Zod · Tailwind CSS | [`frontend/`](frontend) |
+
+---
+
+## Rodando tudo com Docker
+
+O jeito mais rápido de ver o sistema completo. Sobem dois containers: `web` (Nginx servindo o front e repassando `/api`) e `api` (Spring Boot). Só o `web` fica exposto; a API é acessível apenas pela rede interna, e o front e a API compartilham a mesma origem, sem CORS.
+
+```bash
+cp .env.example .env              # defina JWT_SECRET (openssl rand -base64 48)
+docker compose up -d --build      # aplicação em http://localhost
+docker compose logs -f api        # acompanhar os logs da API
+```
+
+- O compose **não sobe sem `JWT_SECRET`** no `.env`, para evitar rodar em produção com a chave de desenvolvimento.
+- O banco SQLite fica no volume `foody-data` e sobrevive a restarts e rebuilds.
+- O `web` só inicia depois que a API está aceitando conexões (healthcheck), então ninguém vê erro 502 durante a subida.
+- As duas imagens são construídas em dois estágios (só o necessário vai para produção); a API roda com usuário sem privilégios.
+- Para usar outra porta: `WEB_PORT=8081` no `.env`.
+
+### Deploy em uma VPS (ex.: Hostinger, Ubuntu)
+
+1. Instale o Docker: `curl -fsSL https://get.docker.com | sh`
+2. Clone o repositório e entre na pasta.
+3. `cp .env.example .env` e preencha `JWT_SECRET`.
+4. `docker compose up -d --build`
+5. Para atualizar: `git pull && docker compose up -d --build` — os dados permanecem no volume.
+
+> Para HTTPS, coloque um proxy reverso (Caddy ou Nginx + Let's Encrypt) na frente da porta do `web` e libere no firewall apenas as portas 80/443.
 
 ---
 
@@ -44,31 +72,12 @@ Roda os testes unitários e de integração (MockMvc + SQLite em memória) e **f
 A coleção em [`postman/`](postman) percorre o fluxo completo contra a API rodando — cadastro, login, criação do pedido, avanço de status até `ENTREGUE` — e cada cenário de erro (400, 401, 404, 409, 422), com 63 asserções. Pode ser importada no Postman ou executada pela linha de comando (requer Node.js):
 
 ```bash
-# com a API rodando em http://localhost:8080
+# com a API rodando em http://localhost:8080 (./mvnw spring-boot:run)
 npx newman run postman/foody-delivery.postman_collection.json -e postman/local.postman_environment.json
+
+# ou contra o Docker Compose (passando pelo Nginx)
+npx newman run postman/foody-delivery.postman_collection.json --env-var baseUrl=http://localhost
 ```
-
-### Docker
-
-A imagem é construída em dois estágios (JDK para compilar, só a JRE para rodar), executa com usuário sem privilégios e guarda o banco SQLite em um volume (`foody-data`), que sobrevive a restarts e rebuilds.
-
-```bash
-cp .env.example .env              # defina JWT_SECRET (openssl rand -base64 48)
-docker compose up -d --build      # API em http://localhost:8080
-docker compose logs -f api        # acompanhar os logs
-```
-
-O compose **não sobe sem `JWT_SECRET`** definido no `.env`, para evitar rodar em produção com a chave de desenvolvimento.
-
-#### Deploy em uma VPS (ex.: Hostinger, Ubuntu)
-
-1. Instale o Docker: `curl -fsSL https://get.docker.com | sh`
-2. Clone o repositório e entre na pasta.
-3. `cp .env.example .env` e preencha `JWT_SECRET` (e `CORS_ALLOWED_ORIGINS` com o domínio do front-end).
-4. `docker compose up -d --build`
-5. Para atualizar: `git pull && docker compose up -d --build` — os dados permanecem no volume.
-
-> Em produção, exponha a API atrás de um proxy reverso com HTTPS (Caddy ou Nginx + Let's Encrypt) e libere no firewall apenas as portas 80/443.
 
 ### Endpoints
 
@@ -199,3 +208,46 @@ backend/src/main/java/com/foody/delivery
 - Paginação e filtro por status na listagem.
 - Refresh token.
 - Migrações versionadas (Flyway).
+
+---
+
+## Front-end
+
+Aplicação da expedição: o operador entra, vê a fila de pedidos com o status de cada um, cria pedidos e avança cada um pelas etapas.
+
+### Como rodar
+
+Requer **Node.js 20 ou superior** e a API rodando em `http://localhost:8080`.
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
+```
+
+O Vite repassa `/api` para a API (mesma origem também em desenvolvimento, sem CORS).
+
+| Comando | O que faz |
+|---|---|
+| `npm run test` | testes (Vitest + Testing Library, com a API simulada pelo MSW) |
+| `npm run build` | checagem de tipos + build de produção em `dist/` |
+| `npm run coverage` | relatório de cobertura |
+
+### Telas
+
+| Rota | Tela |
+|---|---|
+| `/login`, `/cadastro` | Entrar e criar conta (entra direto após o cadastro) |
+| `/pedidos` | Fila de pedidos em comandas, com contagem por status que também filtra; atualiza sozinha a cada 15 s |
+| `/pedidos/novo` | Formulário com itens dinâmicos ao lado de uma comanda que se monta enquanto se digita |
+| `/pedidos/:id` | Comanda completa, etapas do pedido e as ações possíveis (cancelar pede confirmação) |
+
+### Decisões técnicas
+
+- **Organização por funcionalidade** (`features/auth`, `features/orders`) com uma camada `shared` (cliente HTTP, componentes de interface, formatação) que não conhece nenhuma funcionalidade.
+- **Dados do servidor com TanStack Query**: cache, estados de carregamento e erro, e invalidação após criar pedido ou mudar status. Chaves de cache centralizadas em `orderKeys`.
+- **Mesmas regras do back-end no formulário** (Zod): CEP, senha de 6 a 72 bytes, preço com até 2 casas, ao menos um item. Os erros de campo que a API devolve (`items[0].quantity`, `deliveryAddress.zipCode`) caem no campo certo do formulário.
+- **Fluxo de status espelhado** em `features/orders/status.ts`, testado contra a mesma tabela de transições do back. A tela mostra só as ações possíveis; se outra pessoa mudou o pedido antes (422), a tela recarrega o pedido e explica o que aconteceu.
+- **Sessão**: token no `localStorage`; qualquer 401 em rota protegida encerra a sessão e volta ao login com aviso. Ao sair, o cache é limpo para que dados de um usuário não apareçam para o próximo.
+- **Visual de comanda**: cada pedido é uma tira de papel térmico com borda serrilhada; a fonte monoespaçada aparece só dentro da comanda. Status sempre com cor e texto, foco de teclado visível e animação desligada para quem prefere movimento reduzido.
+

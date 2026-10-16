@@ -4,14 +4,33 @@ services:
     image: foody-delivery-api
     container_name: foody-api
     restart: unless-stopped
-    ports:
-      - "${API_PORT:-8080}:8080"
+    # Sem porta pública: só o Nginx do serviço web fala com a API, pela rede interna
+    expose:
+      - "8080"
     environment:
       # Obrigatório: o compose não sobe sem um segredo próprio (veja .env.example)
       JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
       APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     volumes:
       - foody-data:/app/data
+    healthcheck:
+      # A imagem da JRE não tem curl: testa se a porta da API já aceita conexões
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  web:
+    build: ./frontend
+    image: foody-delivery-web
+    container_name: foody-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-80}:80"
 
 volumes:
   # Banco SQLite persistido fora do container (sobrevive a rebuilds e restarts)
