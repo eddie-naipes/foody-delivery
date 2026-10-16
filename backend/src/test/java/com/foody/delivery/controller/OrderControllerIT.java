@@ -21,7 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.foody.delivery.repository.OrderRepository;
+import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.repository.UserRepository;
+import com.foody.delivery.util.Messages;
 import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
@@ -174,7 +176,7 @@ class OrderControllerIT {
 	void getByIdMissingReturns404() throws Exception {
 		mockMvc.perform(get("/api/orders/{id}", 999999).header("Authorization", "Bearer " + token))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.message").value("Pedido 999999 não encontrado"));
+			.andExpect(jsonPath("$.message").value(Messages.ORDER_NOT_FOUND.formatted(999999)));
 	}
 
 	@Test
@@ -199,7 +201,7 @@ class OrderControllerIT {
 				{"status": "ENTREGUE"}
 				""")
 			.andExpect(status().is(422))
-			.andExpect(jsonPath("$.message").value("Transição de RECEBIDO para ENTREGUE não permitida"));
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_STATUS_TRANSITION.formatted(OrderStatus.RECEBIDO, OrderStatus.ENTREGUE)));
 	}
 
 	@Test
@@ -218,7 +220,7 @@ class OrderControllerIT {
 				{"status": "PRONTO"}
 				""")
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.message").value("Corpo da requisição inválido"));
+			.andExpect(jsonPath("$.message").value(Messages.MALFORMED_REQUEST));
 	}
 
 	@Test
@@ -234,21 +236,21 @@ class OrderControllerIT {
 	void getByNonNumericIdReturns400() throws Exception {
 		mockMvc.perform(get("/api/orders/abc").header("Authorization", "Bearer " + token))
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.message").value("Parâmetro inválido: id"));
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_PARAMETER.formatted("id")));
 	}
 
 	@Test
 	void unknownRouteReturns404() throws Exception {
 		mockMvc.perform(get("/api/unknown").header("Authorization", "Bearer " + token))
 			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("$.message").value("Recurso não encontrado"));
+			.andExpect(jsonPath("$.message").value(Messages.RESOURCE_NOT_FOUND));
 	}
 
 	@Test
 	void unsupportedMethodReturns405() throws Exception {
 		mockMvc.perform(delete("/api/orders/1").header("Authorization", "Bearer " + token))
 			.andExpect(status().isMethodNotAllowed())
-			.andExpect(jsonPath("$.message").value("Método não permitido"));
+			.andExpect(jsonPath("$.message").value(Messages.METHOD_NOT_ALLOWED));
 	}
 
 	@Test
@@ -257,9 +259,9 @@ class OrderControllerIT {
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.status").value(400))
 			.andExpect(jsonPath("$.error").value("Bad Request"))
-			.andExpect(jsonPath("$.message").value("Dados inválidos"))
+			.andExpect(jsonPath("$.message").value(Messages.VALIDATION_FAILED))
 			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'items')].message")
-				.value(hasItem("O pedido deve ter ao menos um item")))
+				.value(hasItem(Messages.ITEMS_REQUIRED)))
 			.andExpect(jsonPath("$.timestamp").isNotEmpty());
 	}
 

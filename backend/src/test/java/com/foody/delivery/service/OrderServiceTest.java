@@ -31,6 +31,7 @@ import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
+import com.foody.delivery.util.Messages;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -94,7 +95,7 @@ class OrderServiceTest {
 
 		assertThatThrownBy(() -> orderService.findById(99L))
 			.isInstanceOf(ResourceNotFoundException.class)
-			.hasMessage("Pedido 99 não encontrado");
+			.hasMessage(Messages.ORDER_NOT_FOUND.formatted(99));
 	}
 
 	@Test
@@ -115,7 +116,7 @@ class OrderServiceTest {
 
 		assertThatThrownBy(() -> orderService.updateStatus(1L, OrderStatus.ENTREGUE))
 			.isInstanceOf(InvalidStatusTransitionException.class)
-			.hasMessage("Transição de RECEBIDO para ENTREGUE não permitida");
+			.hasMessage(Messages.INVALID_STATUS_TRANSITION.formatted(OrderStatus.RECEBIDO, OrderStatus.ENTREGUE));
 	}
 
 	@Test

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.foody.delivery.dto.response.ErrorResponse;
+import com.foody.delivery.util.Messages;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,13 +30,13 @@ public class GlobalExceptionHandler {
 			.stream()
 			.map(error -> new ErrorResponse.FieldError(error.getField(), error.getDefaultMessage()))
 			.toList();
-		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, "Dados inválidos", fieldErrors));
+		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED, fieldErrors));
 	}
 
 	/** JSON malformado ou valor desconhecido de enum (ex.: status "PRONTO"). */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
-		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, "Corpo da requisição inválido"));
+		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, Messages.MALFORMED_REQUEST));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
@@ -50,7 +51,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(BadCredentialsException.class)
 	public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
-		return build(ErrorResponse.of(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos"));
+		return build(ErrorResponse.of(HttpStatus.UNAUTHORIZED, Messages.INVALID_CREDENTIALS));
 	}
 
 	@ExceptionHandler(EmailAlreadyInUseException.class)
@@ -61,7 +62,7 @@ public class GlobalExceptionHandler {
 	/** Ex.: GET /api/orders/abc. */
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
 	public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, "Parâmetro inválido: " + ex.getName()));
+		return build(ErrorResponse.of(HttpStatus.BAD_REQUEST, Messages.INVALID_PARAMETER.formatted(ex.getName())));
 	}
 
 	/**
@@ -75,14 +76,14 @@ public class GlobalExceptionHandler {
 			return build(ErrorResponse.of(status, frameworkMessage(status)));
 		}
 		log.error("Erro inesperado", ex);
-		return build(ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor"));
+		return build(ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, Messages.INTERNAL_ERROR));
 	}
 
 	private static String frameworkMessage(HttpStatus status) {
 		return switch (status) {
-			case NOT_FOUND -> "Recurso não encontrado";
-			case METHOD_NOT_ALLOWED -> "Método não permitido";
-			default -> "Requisição inválida";
+			case NOT_FOUND -> Messages.RESOURCE_NOT_FOUND;
+			case METHOD_NOT_ALLOWED -> Messages.METHOD_NOT_ALLOWED;
+			default -> Messages.BAD_REQUEST;
 		};
 	}
 

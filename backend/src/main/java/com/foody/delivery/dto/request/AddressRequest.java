@@ -1,25 +1,27 @@
 package com.foody.delivery.dto.request;
 
+import com.foody.delivery.util.Messages;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record AddressRequest(
-		@NotBlank(message = "Logradouro é obrigatório")
+		@NotBlank(message = Messages.STREET_REQUIRED)
 		String street,
 
-		@NotBlank(message = "Número é obrigatório")
+		@NotBlank(message = Messages.NUMBER_REQUIRED)
 		String number,
 
 		String complement,
 
-		@NotBlank(message = "Bairro é obrigatório")
+		@NotBlank(message = Messages.NEIGHBORHOOD_REQUIRED)
 		String neighborhood,
 
-		@NotBlank(message = "Cidade é obrigatória")
+		@NotBlank(message = Messages.CITY_REQUIRED)
 		String city,
 
-		@NotBlank(message = "CEP é obrigatório")
-		@Pattern(regexp = "\\d{8}", message = "CEP deve ter 8 dígitos")
+		@NotBlank(message = Messages.ZIP_CODE_REQUIRED)
+		@Pattern(regexp = "\\d{8}", message = Messages.ZIP_CODE_INVALID)
 		String zipCode) {
 
 	public AddressRequest {

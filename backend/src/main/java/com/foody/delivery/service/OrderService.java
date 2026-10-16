@@ -13,6 +13,7 @@ import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
+import com.foody.delivery.util.Messages;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,7 +57,7 @@ public class OrderService {
 
 	private Order getOrder(Long id) {
 		return orderRepository.findById(id)
-			.orElseThrow(() -> new ResourceNotFoundException("Pedido " + id + " não encontrado"));
+			.orElseThrow(() -> new ResourceNotFoundException(Messages.ORDER_NOT_FOUND.formatted(id)));
 	}
 
 }

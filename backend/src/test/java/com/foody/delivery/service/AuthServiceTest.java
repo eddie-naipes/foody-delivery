@@ -28,6 +28,7 @@ import com.foody.delivery.exception.EmailAlreadyInUseException;
 import com.foody.delivery.mapper.UserMapper;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
+import com.foody.delivery.util.Messages;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -73,7 +74,7 @@ class AuthServiceTest {
 
 		assertThatThrownBy(() -> authService.register(new RegisterRequest("Maria", "maria@foody.com", "secret123")))
 			.isInstanceOf(EmailAlreadyInUseException.class)
-			.hasMessage("E-mail já cadastrado");
+			.hasMessage(Messages.EMAIL_ALREADY_IN_USE);
 		verify(userRepository, never()).save(any());
 	}
 

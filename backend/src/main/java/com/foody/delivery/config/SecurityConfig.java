@@ -26,6 +26,7 @@ import com.foody.delivery.repository.UserRepository;
 import com.foody.delivery.security.JwtAuthenticationEntryPoint;
 import com.foody.delivery.security.JwtAuthenticationFilter;
 import com.foody.delivery.service.JwtService;
+import com.foody.delivery.util.Messages;
 
 /**
  * Segurança stateless: sem sessão e sem CSRF (não há cookies); a identidade vem do
@@ -59,7 +60,7 @@ public class SecurityConfig {
 	@Bean
 	public UserDetailsService userDetailsService(UserRepository userRepository) {
 		return email -> userRepository.findByEmail(email)
-			.orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+			.orElseThrow(() -> new UsernameNotFoundException(Messages.USER_NOT_FOUND));
 	}
 
 	@Bean

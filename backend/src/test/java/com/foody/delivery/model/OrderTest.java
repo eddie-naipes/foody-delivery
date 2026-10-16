@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 import com.foody.delivery.exception.InvalidStatusTransitionException;
+import com.foody.delivery.util.Messages;
 
 class OrderTest {
 
@@ -86,7 +87,7 @@ class OrderTest {
 
 		assertThatThrownBy(() -> order.changeStatus(OrderStatus.EM_PREPARO))
 			.isInstanceOf(InvalidStatusTransitionException.class)
-			.hasMessage("Transição de ENTREGUE para EM_PREPARO não permitida");
+			.hasMessage(Messages.INVALID_STATUS_TRANSITION.formatted(OrderStatus.ENTREGUE, OrderStatus.EM_PREPARO));
 		assertThat(order.getStatus()).isEqualTo(OrderStatus.ENTREGUE);
 	}
 

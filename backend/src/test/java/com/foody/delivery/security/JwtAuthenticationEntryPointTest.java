@@ -7,6 +7,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 
+import com.foody.delivery.util.Messages;
+
 import tools.jackson.databind.json.JsonMapper;
 
 class JwtAuthenticationEntryPointTest {
@@ -23,7 +25,7 @@ class JwtAuthenticationEntryPointTest {
 		assertThat(response.getContentAsString())
 			.contains("\"status\":401")
 			.contains("\"error\":\"Unauthorized\"")
-			.contains("\"message\":\"Autenticação necessária\"");
+			.contains(Messages.AUTHENTICATION_REQUIRED);
 	}
 
 }

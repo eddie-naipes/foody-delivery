@@ -1,20 +1,22 @@
 package com.foody.delivery.dto.request;
 
+import com.foody.delivery.util.Messages;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-		@NotBlank(message = "Nome é obrigatório")
-		@Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
+		@NotBlank(message = Messages.NAME_REQUIRED)
+		@Size(max = 100, message = Messages.NAME_MAX_LENGTH)
 		String name,
 
-		@NotBlank(message = "E-mail é obrigatório")
-		@Email(message = "E-mail inválido")
+		@NotBlank(message = Messages.EMAIL_REQUIRED)
+		@Email(message = Messages.EMAIL_INVALID)
 		String email,
 
-		@NotBlank(message = "Senha é obrigatória")
-		@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+		@NotBlank(message = Messages.PASSWORD_REQUIRED)
+		@Size(min = 6, message = Messages.PASSWORD_MIN_LENGTH)
 		String password) {
 
 	public RegisterRequest {

@@ -8,6 +8,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import com.foody.delivery.dto.response.ErrorResponse;
+import com.foody.delivery.util.Messages;
 
 class GlobalExceptionHandlerTest {
 
@@ -20,7 +21,7 @@ class GlobalExceptionHandlerTest {
 
 		assertThat(response.getStatusCode().value()).isEqualTo(500);
 		assertThat(response.getBody().error()).isEqualTo("Internal Server Error");
-		assertThat(response.getBody().message()).isEqualTo("Erro interno do servidor");
+		assertThat(response.getBody().message()).isEqualTo(Messages.INTERNAL_ERROR);
 		assertThat(response.getBody().fieldErrors()).isEmpty();
 		assertThat(response.getBody().timestamp()).isNotNull();
 	}
@@ -31,7 +32,7 @@ class GlobalExceptionHandlerTest {
 			.handleUnexpected(new HttpRequestMethodNotSupportedException("DELETE"));
 
 		assertThat(response.getStatusCode().value()).isEqualTo(405);
-		assertThat(response.getBody().message()).isEqualTo("Método não permitido");
+		assertThat(response.getBody().message()).isEqualTo(Messages.METHOD_NOT_ALLOWED);
 	}
 
 	@Test
@@ -40,7 +41,7 @@ class GlobalExceptionHandlerTest {
 			.handleUnexpected(new HttpMediaTypeNotSupportedException("text/plain"));
 
 		assertThat(response.getStatusCode().value()).isEqualTo(415);
-		assertThat(response.getBody().message()).isEqualTo("Requisição inválida");
+		assertThat(response.getBody().message()).isEqualTo(Messages.BAD_REQUEST);
 	}
 
 }

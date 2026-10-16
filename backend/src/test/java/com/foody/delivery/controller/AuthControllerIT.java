@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.foody.delivery.repository.OrderRepository;
 import com.foody.delivery.repository.UserRepository;
+import com.foody.delivery.util.Messages;
 import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
@@ -75,7 +76,7 @@ class AuthControllerIT {
 
 		register("Outra", "MARIA@foody.com", "secret456")
 			.andExpect(status().isConflict())
-			.andExpect(jsonPath("$.message").value("E-mail já cadastrado"));
+			.andExpect(jsonPath("$.message").value(Messages.EMAIL_ALREADY_IN_USE));
 	}
 
 	@Test
@@ -103,21 +104,21 @@ class AuthControllerIT {
 
 		login("maria@foody.com", "wrong-pass")
 			.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.message").value("E-mail ou senha inválidos"));
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_CREDENTIALS));
 	}
 
 	@Test
 	void loginUnknownEmailReturns401() throws Exception {
 		login("nobody@foody.com", "secret123")
 			.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.message").value("E-mail ou senha inválidos"));
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_CREDENTIALS));
 	}
 
 	@Test
 	void protectedRouteWithoutTokenReturns401() throws Exception {
 		mockMvc.perform(get("/api/orders"))
 			.andExpect(status().isUnauthorized())
-			.andExpect(jsonPath("$.message").value("Autenticação necessária"));
+			.andExpect(jsonPath("$.message").value(Messages.AUTHENTICATION_REQUIRED));
 	}
 
 	@Test
