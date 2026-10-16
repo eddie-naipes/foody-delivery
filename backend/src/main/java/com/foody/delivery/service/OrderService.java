@@ -16,19 +16,18 @@ import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Orquestra os casos de uso de pedidos. As regras de negócio (transição de status,
  * total) ficam nas entidades; aqui só se busca, delega e converte para DTO dentro da
  * transação.
  */
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
 	private final OrderRepository orderRepository;
-
-	public OrderService(OrderRepository orderRepository) {
-		this.orderRepository = orderRepository;
-	}
 
 	@Transactional
 	public OrderResponse create(CreateOrderRequest request, User createdBy) {

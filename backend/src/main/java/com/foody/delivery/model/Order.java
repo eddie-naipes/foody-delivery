@@ -25,9 +25,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+/**
+ * Pedido de delivery. Sem setters: o status só muda por {@link #changeStatus}, que
+ * aplica as regras de transição, e itens só entram por {@link #addItem}.
+ */
 @Entity
 @Table(name = "orders")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order {
 
 	@Id
@@ -62,10 +71,6 @@ public class Order {
 	@Column(nullable = false)
 	private Instant updatedAt;
 
-	protected Order() {
-		// exigido pelo JPA
-	}
-
 	public Order(String customerName, String customerPhone, Address deliveryAddress, User createdBy) {
 		this.customerName = customerName;
 		this.customerPhone = customerPhone;
@@ -90,40 +95,8 @@ public class Order {
 		this.status = next;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public String getCustomerName() {
-		return customerName;
-	}
-
-	public String getCustomerPhone() {
-		return customerPhone;
-	}
-
-	public Address getDeliveryAddress() {
-		return deliveryAddress;
-	}
-
 	public List<OrderItem> getItems() {
 		return Collections.unmodifiableList(items);
-	}
-
-	public OrderStatus getStatus() {
-		return status;
-	}
-
-	public User getCreatedBy() {
-		return createdBy;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
 	}
 
 }

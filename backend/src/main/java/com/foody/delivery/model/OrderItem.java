@@ -11,9 +11,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "order_items")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {
 
 	@Id
@@ -34,10 +39,6 @@ public class OrderItem {
 	@JoinColumn(name = "order_id")
 	private Order order;
 
-	protected OrderItem() {
-		// exigido pelo JPA
-	}
-
 	public OrderItem(String name, Integer quantity, BigDecimal unitPrice) {
 		this.name = name;
 		this.quantity = quantity;
@@ -48,28 +49,9 @@ public class OrderItem {
 		return unitPrice.multiply(BigDecimal.valueOf(quantity));
 	}
 
+	/** Só o {@link Order#addItem} liga um item ao pedido, mantendo os dois lados consistentes. */
 	void setOrder(Order order) {
 		this.order = order;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public Integer getQuantity() {
-		return quantity;
-	}
-
-	public BigDecimal getUnitPrice() {
-		return unitPrice;
-	}
-
-	public Order getOrder() {
-		return order;
 	}
 
 }

@@ -15,7 +15,10 @@ import com.foody.delivery.exception.EmailAlreadyInUseException;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
 	private final UserRepository userRepository;
@@ -25,14 +28,6 @@ public class AuthService {
 	private final AuthenticationManager authenticationManager;
 
 	private final JwtService jwtService;
-
-	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-			AuthenticationManager authenticationManager, JwtService jwtService) {
-		this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
-		this.authenticationManager = authenticationManager;
-		this.jwtService = jwtService;
-	}
 
 	@Transactional
 	public AuthResponse register(RegisterRequest request) {

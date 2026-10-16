@@ -2,8 +2,6 @@ package com.foody.delivery.exception;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,13 +13,14 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import com.foody.delivery.dto.response.ErrorResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Converte exceções em respostas no formato padrão {@link ErrorResponse}.
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {

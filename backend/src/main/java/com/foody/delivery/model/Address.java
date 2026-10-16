@@ -2,11 +2,18 @@ package com.foody.delivery.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * Endereço de entrega. Embutido na tabela de pedidos (não tem tabela própria).
  */
 @Embeddable
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
 
 	@Column(nullable = false)
@@ -25,43 +32,5 @@ public class Address {
 
 	@Column(nullable = false, length = 8)
 	private String zipCode;
-
-	protected Address() {
-		// exigido pelo JPA
-	}
-
-	public Address(String street, String number, String complement, String neighborhood, String city,
-			String zipCode) {
-		this.street = street;
-		this.number = number;
-		this.complement = complement;
-		this.neighborhood = neighborhood;
-		this.city = city;
-		this.zipCode = zipCode;
-	}
-
-	public String getStreet() {
-		return street;
-	}
-
-	public String getNumber() {
-		return number;
-	}
-
-	public String getComplement() {
-		return complement;
-	}
-
-	public String getNeighborhood() {
-		return neighborhood;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public String getZipCode() {
-		return zipCode;
-	}
 
 }

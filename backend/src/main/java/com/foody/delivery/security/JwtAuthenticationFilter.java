@@ -15,12 +15,14 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Lê o header {@code Authorization: Bearer <token>} e, se o token for válido,
  * autentica o usuário no {@code SecurityContext}. Nunca bloqueia a requisição:
  * quem decide se a rota exige autenticação é o {@code SecurityConfig}.
  */
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private static final String BEARER_PREFIX = "Bearer ";
@@ -28,11 +30,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
 
 	private final UserRepository userRepository;
-
-	public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
-		this.jwtService = jwtService;
-		this.userRepository = userRepository;
-	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

@@ -14,6 +14,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * Usuário (operador) do sistema. Implementa {@link UserDetails} para ser usado
@@ -21,6 +24,8 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User implements UserDetails {
 
 	@Id
@@ -41,10 +46,6 @@ public class User implements UserDetails {
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
-	protected User() {
-		// exigido pelo JPA
-	}
-
 	public User(String name, String email, String password) {
 		this.name = name;
 		this.email = email;
@@ -59,27 +60,6 @@ public class User implements UserDetails {
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of();
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	@Override
-	public String getPassword() {
-		return password;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
 	}
 
 }
