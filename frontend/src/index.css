@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Bancada de inox, tinta, papel térmico e o amarelo da bag de entrega */
+  --color-bench: #e4e8ec;
+  --color-ink: #17212b;
+  --color-paper: #ffffff;
+  --color-muted: #5b6875;
+  --color-ticket: #ffc233;
+  --color-ticket-strong: #f2b000;
+  --color-danger: #b42318;
+
+  --color-status-received: #2563eb;
+  --color-status-preparing: #c2410c;
+  --color-status-out: #7c3aed;
+  --color-status-delivered: #15803d;
+  --color-status-canceled: #6b7280;
+}
+
+@layer base {
+  html {
+    background: var(--color-bench);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Comanda de papel térmico: borda serrilhada em cima e embaixo */
+  .ticket {
+    position: relative;
+    background: var(--color-paper);
+    margin-block: 6px;
+  }
+
+  .ticket::before,
+  .ticket::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background-size: 12px 12px;
+    background-repeat: repeat-x;
+  }
+
+  .ticket::before {
+    top: -6px;
+    background-image:
+      linear-gradient(45deg, var(--color-paper) 50%, transparent 50%),
+      linear-gradient(-45deg, var(--color-paper) 50%, transparent 50%);
+    background-position: 0 6px;
+  }
+
+  .ticket::after {
+    bottom: -6px;
+    background-image:
+      linear-gradient(135deg, var(--color-paper) 50%, transparent 50%),
+      linear-gradient(-135deg, var(--color-paper) 50%, transparent 50%);
+    background-position: 0 0;
+  }
+
+  .ticket-rule {
+    border-top: 1px dashed color-mix(in srgb, var(--color-ink) 30%, transparent);
+  }
+
+  /* Linha nova da comanda "sai da impressora" */
+  .print-in {
+    animation: print-in 220ms ease-out;
+  }
+}
+
+@keyframes print-in {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .print-in {
+    animation: none;
+  }
+}
