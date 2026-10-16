@@ -28,7 +28,7 @@ Prioridade: clareza e organização para o avaliador. Primeiro entregamos o núc
 | Repositório | Monorepo `foody-delivery-test/` com `backend/`, `frontend/`, `README.md` |
 | Build | Maven + Maven Wrapper (`mvnw`) |
 | Java | Target 21 (LTS) |
-| Framework | Spring Boot 3.5.x |
+| Framework | Spring Boot 4.0.8 |
 | Banco | SQLite (arquivo `foody.db`) via JPA/Hibernate + `hibernate-community-dialects` |
 | Esquema | `spring.jpa.hibernate.ddl-auto=update` (sem Flyway) |
 | Autenticação | JWT stateless (jjwt, HS256, expiração 8h), sem refresh token; senha com BCrypt |
