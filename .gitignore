@@ -1,0 +1,12 @@
+# Back-end
+backend/target/
+*.db
+
+# Front-end
+node_modules/
+dist/
+
+# IDEs
+.idea/
+.vscode/
+*.iml

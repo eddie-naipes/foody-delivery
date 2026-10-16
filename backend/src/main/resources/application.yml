@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: foody-delivery
+  datasource:
+    url: jdbc:sqlite:foody.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite não suporta escrita concorrente; uma conexão evita "database is locked"
+      maximum-pool-size: 1
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+app:
+  jwt:
+    # Em produção, defina a variável de ambiente JWT_SECRET (Base64, mínimo 32 bytes)
+    secret: ${JWT_SECRET:Zm9vZHktZGVsaXZlcnktZGV2LXNlY3JldC1rZXktY2hhbmdlLW1lLTEyMzQ1Njc4OTA=}
+    expiration: 8h
+  cors:
+    allowed-origins: http://localhost:5173
