@@ -15,12 +15,10 @@ import com.foody.delivery.mapper.UserMapper;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.UserRepository;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
 	private final UserRepository userRepository;
@@ -32,6 +30,15 @@ public class AuthService {
 	private final JwtService jwtService;
 
 	private final UserMapper userMapper;
+
+	public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+			AuthenticationManager authenticationManager, JwtService jwtService, UserMapper userMapper) {
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.authenticationManager = authenticationManager;
+		this.jwtService = jwtService;
+		this.userMapper = userMapper;
+	}
 
 	@Transactional
 	public AuthResponse register(RegisterRequest request) {

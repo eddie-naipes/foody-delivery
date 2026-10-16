@@ -15,7 +15,6 @@ import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
 import com.foody.delivery.util.Messages;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,12 +24,16 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OrderService {
 
 	private final OrderRepository orderRepository;
 
 	private final OrderMapper orderMapper;
+
+	public OrderService(OrderRepository orderRepository, OrderMapper orderMapper) {
+		this.orderRepository = orderRepository;
+		this.orderMapper = orderMapper;
+	}
 
 	@Transactional
 	public OrderResponse create(CreateOrderRequest request, User createdBy) {

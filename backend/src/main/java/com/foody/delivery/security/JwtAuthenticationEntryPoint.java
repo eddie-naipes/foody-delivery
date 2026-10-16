@@ -13,7 +13,6 @@ import com.foody.delivery.util.Messages;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -21,10 +20,13 @@ import tools.jackson.databind.json.JsonMapper;
  * token válido.
  */
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 	private final JsonMapper jsonMapper;
+
+	public JwtAuthenticationEntryPoint(JsonMapper jsonMapper) {
+		this.jsonMapper = jsonMapper;
+	}
 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,

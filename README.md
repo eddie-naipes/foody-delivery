@@ -166,7 +166,7 @@ Todos os erros seguem o mesmo formato:
 - **Regras de negócio no domínio**: a máquina de estados vive no enum `OrderStatus` e o total é calculado pelo `Order` (não é persistido, para nunca ficar inconsistente com os itens). O service só orquestra.
 - **DTOs como `record`**: a API nunca expõe entidades JPA; a senha jamais aparece em respostas.
 - **MapStruct** para converter entidades ↔ DTOs: código gerado em compilação (sem reflexão) e `unmappedTargetPolicy = ERROR`, então um campo esquecido quebra o build em vez de virar `null`.
-- **Lombok com moderação**: `@Getter` e construtor protegido nas entidades (sem `@Data`/setters — o status só muda por `changeStatus`), `@RequiredArgsConstructor` na injeção e `@Slf4j`. O código gerado é marcado para não contar na cobertura.
+- **Lombok com moderação**: `@Getter` e construtor protegido nas entidades (sem `@Data`/setters — o status só muda por `changeStatus`) e `@Slf4j`. Construtores com atribuições são escritos à mão: o Lombok embutido no VS Code (JDT) gera para eles um código que o editor rejeita como recurso do Java 25. O código gerado é marcado para não contar na cobertura.
 - **Mensagens centralizadas** na classe `Messages`: todo texto devolvido pela API (inclusive de validação) é uma constante, reutilizada pelos testes.
 - **Exceções de negócio** estendem `ApiException`, que carrega o status HTTP — um único handler as trata.
 - **Logs de negócio** (cadastro, login, pedido criado, mudança de status, requisições rejeitadas) sem dados sensíveis: nunca senha, token ou dados pessoais do cliente.

@@ -13,14 +13,16 @@ import com.foody.delivery.dto.response.AuthResponse;
 import com.foody.delivery.service.AuthService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
 	private final AuthService authService;
+
+	public AuthController(AuthService authService) {
+		this.authService = authService;
+	}
 
 	@PostMapping("/register")
 	@ResponseStatus(HttpStatus.CREATED)

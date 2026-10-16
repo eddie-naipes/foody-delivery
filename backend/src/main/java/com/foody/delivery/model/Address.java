@@ -3,7 +3,6 @@ package com.foody.delivery.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
  */
 @Embeddable
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Address {
 
@@ -32,5 +30,15 @@ public class Address {
 
 	@Column(nullable = false, length = 8)
 	private String zipCode;
+
+	public Address(String street, String number, String complement, String neighborhood, String city,
+			String zipCode) {
+		this.street = street;
+		this.number = number;
+		this.complement = complement;
+		this.neighborhood = neighborhood;
+		this.city = city;
+		this.zipCode = zipCode;
+	}
 
 }
