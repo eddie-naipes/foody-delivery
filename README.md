@@ -48,6 +48,28 @@ A coleção em [`postman/`](postman) percorre o fluxo completo contra a API roda
 npx newman run postman/foody-delivery.postman_collection.json -e postman/local.postman_environment.json
 ```
 
+### Docker
+
+A imagem é construída em dois estágios (JDK para compilar, só a JRE para rodar), executa com usuário sem privilégios e guarda o banco SQLite em um volume (`foody-data`), que sobrevive a restarts e rebuilds.
+
+```bash
+cp .env.example .env              # defina JWT_SECRET (openssl rand -base64 48)
+docker compose up -d --build      # API em http://localhost:8080
+docker compose logs -f api        # acompanhar os logs
+```
+
+O compose **não sobe sem `JWT_SECRET`** definido no `.env`, para evitar rodar em produção com a chave de desenvolvimento.
+
+#### Deploy em uma VPS (ex.: Hostinger, Ubuntu)
+
+1. Instale o Docker: `curl -fsSL https://get.docker.com | sh`
+2. Clone o repositório e entre na pasta.
+3. `cp .env.example .env` e preencha `JWT_SECRET` (e `CORS_ALLOWED_ORIGINS` com o domínio do front-end).
+4. `docker compose up -d --build`
+5. Para atualizar: `git pull && docker compose up -d --build` — os dados permanecem no volume.
+
+> Em produção, exponha a API atrás de um proxy reverso com HTTPS (Caddy ou Nginx + Let's Encrypt) e libere no firewall apenas as portas 80/443.
+
 ### Endpoints
 
 Todas as rotas, exceto `/api/auth/**`, exigem o header `Authorization: Bearer <token>`.
