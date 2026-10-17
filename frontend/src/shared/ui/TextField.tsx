@@ -17,7 +17,7 @@ export function TextField({ label, hideLabel, error, hint, className, ref, ...re
 
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className={cn('text-[13px] font-semibold text-ink', hideLabel && 'sr-only')}>
+      <label htmlFor={id} className={cn('text-[14px] font-bold text-ink', hideLabel && 'sr-only')}>
         {label}
       </label>
       <input
@@ -26,9 +26,9 @@ export function TextField({ label, hideLabel, error, hint, className, ref, ...re
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          'h-10 w-full rounded-md bg-paper px-3 text-[15px] text-ink ring-1 ring-inset placeholder:text-muted/70',
-          'focus:outline-none focus:ring-2',
-          error ? 'ring-danger focus:ring-danger' : 'ring-ink/20 focus:ring-ink',
+          'h-11 w-full rounded-xl bg-paper px-4 text-[15px] text-ink ring-1 ring-inset placeholder:text-muted/70',
+          'transition-shadow focus:outline-none focus:ring-2',
+          error ? 'ring-danger focus:ring-danger' : 'ring-ink/20 hover:ring-ink/35 focus:ring-ink',
         )}
         {...rest}
       />

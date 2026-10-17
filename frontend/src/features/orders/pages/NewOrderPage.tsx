@@ -47,18 +47,18 @@ export function NewOrderPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <Link to="/pedidos" className="text-[15px] text-muted underline-offset-4 hover:underline">
+        <Link to="/pedidos" className="text-[15px] font-bold text-muted underline-offset-4 hover:text-brand hover:underline">
           Voltar para pedidos
         </Link>
-        <h1 className="mt-2 text-[36px] leading-tight font-bold tracking-tight">Novo pedido</h1>
+        <h1 className="mt-2 text-[34px] leading-tight font-extrabold tracking-tight">Novo pedido</h1>
       </div>
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <form noValidate onSubmit={onSubmit} className="flex flex-col gap-8">
           {error ? <Alert tone="error">{error}</Alert> : null}
 
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-3 text-[18px] font-bold">Cliente</legend>
+          <fieldset className="card flex flex-col gap-4 p-6">
+            <legend className="float-left mb-1 w-full text-[20px] font-extrabold">Cliente</legend>
             <div className="grid gap-4 sm:grid-cols-2">
               <TextField
                 label="Nome do cliente"
@@ -80,8 +80,8 @@ export function NewOrderPage() {
             </div>
           </fieldset>
 
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-3 text-[18px] font-bold">Endereço de entrega</legend>
+          <fieldset className="card flex flex-col gap-4 p-6">
+            <legend className="float-left mb-1 w-full text-[20px] font-extrabold">Endereço de entrega</legend>
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_120px]">
               <TextField label="Rua" maxLength={120} error={errors.deliveryAddress?.street?.message} {...form.register('deliveryAddress.street')} />
               <TextField label="Número" maxLength={10} error={errors.deliveryAddress?.number?.message} {...form.register('deliveryAddress.number')} />
@@ -111,8 +111,8 @@ export function NewOrderPage() {
             </div>
           </fieldset>
 
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-3 text-[18px] font-bold">Itens</legend>
+          <fieldset className="card flex flex-col gap-4 p-6">
+            <legend className="float-left mb-1 w-full text-[20px] font-extrabold">Itens</legend>
             {(errors.items?.root?.message ?? errors.items?.message) ? (
               <Alert tone="error">{errors.items?.root?.message ?? errors.items?.message}</Alert>
             ) : null}
@@ -170,11 +170,11 @@ export function NewOrderPage() {
             </Button>
           </fieldset>
 
-          <div className="flex flex-wrap gap-3 border-t border-ink/10 pt-6">
+          <div className="flex flex-wrap gap-3 border-t border-line pt-6">
             <Button type="submit" loading={form.formState.isSubmitting}>
               Criar pedido
             </Button>
-            <Link to="/pedidos" className="inline-flex h-10 items-center px-2 text-[15px] text-muted hover:text-ink">
+            <Link to="/pedidos" className="inline-flex h-11 items-center px-2 text-[15px] font-bold text-muted hover:text-brand">
               Descartar
             </Link>
           </div>

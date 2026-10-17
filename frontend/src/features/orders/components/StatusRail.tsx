@@ -19,7 +19,7 @@ export function StatusRail({ status }: { status: OrderStatus }) {
               <span
                 aria-hidden="true"
                 className={cn(
-                  'h-1.5 rounded-full',
+                  'h-2 rounded-full',
                   done || current ? STATUS_META[status].dot : 'bg-ink/15',
                   canceled && 'bg-ink/10',
                 )}
@@ -27,7 +27,7 @@ export function StatusRail({ status }: { status: OrderStatus }) {
               <span
                 className={cn(
                   'text-[13px] leading-tight',
-                  current ? 'font-semibold text-ink' : done ? 'text-ink' : 'text-muted',
+                  current ? 'font-extrabold text-ink' : done ? 'font-bold text-ink' : 'text-muted',
                 )}
               >
                 {index + 1}. {STATUS_META[step].label}

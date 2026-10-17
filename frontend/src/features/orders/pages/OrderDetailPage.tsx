@@ -16,7 +16,7 @@ import { availableTransitions, STATUS_META } from '../status'
 import type { Order, OrderStatus } from '../types'
 
 const backLink = (
-  <Link to="/pedidos" className="text-[15px] text-muted underline-offset-4 hover:underline">
+  <Link to="/pedidos" className="text-[15px] font-bold text-muted underline-offset-4 hover:text-brand hover:underline">
     Voltar para pedidos
   </Link>
 )
@@ -83,7 +83,7 @@ function OrderDetail({ order }: { order: Order }) {
       <div>
         {backLink}
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-[36px] leading-tight font-bold tracking-tight">Pedido {formatOrderNumber(order.id)}</h1>
+          <h1 className="text-[34px] leading-tight font-extrabold tracking-tight">Pedido {formatOrderNumber(order.id)}</h1>
           <StatusBadge status={order.status} />
         </div>
         <p className="text-[15px] text-muted">
@@ -93,7 +93,7 @@ function OrderDetail({ order }: { order: Order }) {
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section aria-labelledby="andamento" className="flex flex-col gap-6">
-          <h2 id="andamento" className="text-[18px] font-bold">
+          <h2 id="andamento" className="text-[20px] font-extrabold">
             Andamento
           </h2>
           <StatusRail status={order.status} />
@@ -107,7 +107,7 @@ function OrderDetail({ order }: { order: Order }) {
               <p className="text-[15px] text-muted">Pedido concluído. Não há mais etapas.</p>
             ) : null
           ) : confirmingCancel ? (
-            <div className="flex flex-col gap-3 rounded-md bg-paper p-4 ring-1 ring-inset ring-danger/30">
+            <div className="flex flex-col gap-3 rounded-2xl bg-blush p-5 ring-1 ring-inset ring-danger/25">
               <p className="text-[15px]">
                 Cancelar o pedido {formatOrderNumber(order.id)}? Depois de cancelado, ele não pode voltar ao fluxo.
               </p>

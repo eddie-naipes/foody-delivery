@@ -59,42 +59,30 @@ Regras de dependência: `features/*` usam `shared/*`; `shared` não conhece feat
 
 ## 5. Direção visual
 
-**Conceito:** a expedição de um restaurante funciona com **comandas** — tiras de papel térmico penduradas em ordem. A interface trata cada pedido como uma comanda: papel branco com borda serrilhada, número grande impresso, itens em colunas. Esse é o único elemento ousado; o resto da interface fica quieto e disciplinado.
+**Conceito (revisado em 2026-10-17):** a interface segue a identidade visual atual da Foody Delivery (foodydelivery.com e o app de operação mostrado no site), para o sistema parecer parte da plataforma. Os tokens foram extraídos dos estilos do próprio site.
 
 **Cor**
 
 | Token | Hex | Uso |
 |---|---|---|
-| `bench` | `#E4E8EC` | fundo da aplicação (bancada de inox) |
-| `ink` | `#17212B` | texto principal e barra superior |
-| `paper` | `#FFFFFF` | comandas e formulários |
-| `muted` | `#5B6875` | texto secundário |
-| `ticket` | `#FFC233` | ação principal (amarelo de bag de entrega), sempre com texto `ink` |
-| status | `#2563EB` recebido · `#C2410C` em preparo · `#7C3AED` saiu · `#15803D` entregue · `#6B7280` cancelado |
+| `bench` | `#FAF5F3` | fundo da aplicação (bege quente das seções do site) |
+| `ink` | `#241E1C` | texto principal |
+| `muted` | `#5B534F` | texto secundário |
+| `line` | `#EFE6E2` | bordas de cartões e divisórias |
+| `brand` | `#D30101` | ação principal, número do pedido, aba ativa |
+| `coral` | `#FF5C5C` | destaque da marca ("Delivery"), hover |
+| `blush` | `#FFF0EF` | fundo de avisos e do total |
+| status | `#2563EB` recebido, `#C2410C` em preparo, `#7C3AED` saiu, `#15803D` entregue, `#6B7280` cancelado |
 
-**Tipografia:** *Instrument Sans* para a interface. *IBM Plex Mono* **apenas dentro da comanda** (número, itens, valores) — é a voz da impressora térmica, não um rótulo decorativo. Escala: 13 / 15 / 18 / 24 / 36; número da comanda em 36 mono.
+O botão principal usa o vermelho `#D30101` (e não o coral do site) porque texto branco sobre coral não atinge contraste legível.
 
-**Layout:** alinhado à esquerda, largura máxima 1200px, barra superior `ink` fina. Lista em grade de comandas (1 coluna no celular, 2–3 no desktop). Novo pedido em duas colunas: formulário à esquerda, comanda viva à direita (empilha no celular).
+**Tipografia:** *Sen*, a fonte da marca, em toda a interface; títulos em 800, rótulos em 700, números com algarismos tabulares.
 
-```
-┌──────────────────────────────────────────────────────┐
-│ Foody Expedição                 Operador  [Sair]     │  barra ink
-├──────────────────────────────────────────────────────┤
-│ Pedidos                               [Novo pedido]  │
-│ [Todos 12] [Recebido 3] [Em preparo 4] [Saiu 2] ...  │  contagem = filtro
-│ ┌╌╌╌╌╌╌╌╌╌╌┐ ┌╌╌╌╌╌╌╌╌╌╌┐ ┌╌╌╌╌╌╌╌╌╌╌┐               │
-│ │ #0042    │ │ #0041    │ │ #0040    │  comandas     │
-│ │ Maria S. │ │ ...      │ │ ...      │               │
-│ │ 3 itens  │ │          │ │          │               │
-│ │ R$ 99,90 │ │          │ │          │               │
-│ │ ●Preparo │ │          │ │          │               │
-│ └╌╌╌╌╌╌╌╌╌╌┘ └╌╌╌╌╌╌╌╌╌╌┘ └╌╌╌╌╌╌╌╌╌╌┘               │
-└──────────────────────────────────────────────────────┘
-```
+**Componentes:** botões em pílula com sombra avermelhada; cartões brancos com raio de 20px e borda quente; cabeçalho branco com abas sublinhadas em vermelho; pedido como cartão com etiqueta de status, número em vermelho e "Entregar em:" em negrito, como no app da Foody. O logotipo da empresa não é reproduzido; a marca usa um ícone próprio.
 
-**Princípios:** a comanda é o produto; status sempre com cor **e** texto (nunca só cor); sem sombras genéricas nem gradientes; foco de teclado visível; movimento só como resposta a uma ação (a comanda viva "imprime" uma linha nova ao adicionar item; respeita `prefers-reduced-motion`).
+**Princípios:** status sempre com cor e texto; vermelho reservado para ação e erro (o foco dos campos é escuro, para não parecer erro); foco de teclado visível; movimento só em resposta a ação e respeitando `prefers-reduced-motion`.
 
-**Textos:** verbos diretos e a mesma palavra do botão ao aviso ("Criar pedido" → "Pedido criado"). Erros dizem o que aconteceu e o que fazer.
+**Entrada de dados:** telefone, CEP, quantidade e preço têm máscara enquanto se digita — o campo nunca aceita caractere inválido — e todos os textos têm limite de tamanho.
 
 ## 6. Docker
 

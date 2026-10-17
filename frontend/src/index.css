@@ -1,16 +1,18 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-sans: 'Sen', ui-sans-serif, system-ui, sans-serif;
 
-  /* Bancada de inox, tinta, papel térmico e o amarelo da bag de entrega */
-  --color-bench: #e4e8ec;
-  --color-ink: #17212b;
+  /* Paleta da Foody Delivery: vermelho da marca, coral de destaque e neutros quentes */
+  --color-bench: #faf5f3;
+  --color-ink: #241e1c;
   --color-paper: #ffffff;
-  --color-muted: #5b6875;
-  --color-ticket: #ffc233;
-  --color-ticket-strong: #f2b000;
+  --color-muted: #5b534f;
+  --color-line: #efe6e2;
+  --color-brand: #d30101;
+  --color-brand-strong: #b00000;
+  --color-coral: #ff5c5c;
+  --color-blush: #fff0ef;
   --color-danger: #b42318;
 
   --color-status-received: #2563eb;
@@ -18,6 +20,8 @@
   --color-status-out: #7c3aed;
   --color-status-delivered: #15803d;
   --color-status-canceled: #6b7280;
+
+  --shadow-brand: 0 12px 28px -12px rgb(211 1 1 / 0.55);
 }
 
 @layer base {
@@ -29,53 +33,24 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ink);
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
 }
 
 @layer components {
-  /* Comanda de papel térmico: borda serrilhada em cima e embaixo */
-  .ticket {
-    position: relative;
+  /* Cartão padrão: branco, cantos bem arredondados e borda quente */
+  .card {
     background: var(--color-paper);
-    margin-block: 6px;
+    border: 1px solid var(--color-line);
+    border-radius: 20px;
   }
 
-  .ticket::before,
-  .ticket::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background-size: 12px 12px;
-    background-repeat: repeat-x;
+  .card-divider {
+    border-top: 1px solid var(--color-line);
   }
 
-  .ticket::before {
-    top: -6px;
-    background-image:
-      linear-gradient(45deg, var(--color-paper) 50%, transparent 50%),
-      linear-gradient(-45deg, var(--color-paper) 50%, transparent 50%);
-    /* metade superior do ladrilho: dentes apontando para cima */
-    background-position: 0 0;
-  }
-
-  .ticket::after {
-    bottom: -6px;
-    background-image:
-      linear-gradient(135deg, var(--color-paper) 50%, transparent 50%),
-      linear-gradient(-135deg, var(--color-paper) 50%, transparent 50%);
-    /* metade inferior do ladrilho: dentes apontando para baixo */
-    background-position: 0 -6px;
-  }
-
-  .ticket-rule {
-    border-top: 1px dashed color-mix(in srgb, var(--color-ink) 30%, transparent);
-  }
-
-  /* Linha nova da comanda "sai da impressora" */
+  /* Linha nova do resumo aparece com um leve deslize */
   .print-in {
     animation: print-in 220ms ease-out;
   }
@@ -83,12 +58,12 @@
 
 @keyframes print-in {
   from {
-    clip-path: inset(0 0 100% 0);
-    opacity: 0.4;
+    opacity: 0;
+    transform: translateY(-4px);
   }
   to {
-    clip-path: inset(0 0 0 0);
     opacity: 1;
+    transform: none;
   }
 }
 

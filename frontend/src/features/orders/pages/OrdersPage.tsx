@@ -23,12 +23,14 @@ export function OrdersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[36px] leading-tight font-bold tracking-tight">Pedidos</h1>
+          <h1 className="text-[34px] leading-tight font-extrabold tracking-tight">Pedidos</h1>
           <p className="text-[15px] text-muted">Do mais recente para o mais antigo. A lista se atualiza sozinha.</p>
         </div>
-        <Link to="/pedidos/novo" className={newOrderLink}>
-          Novo pedido
-        </Link>
+        {all.length > 0 ? (
+          <Link to="/pedidos/novo" className={newOrderLink}>
+            Novo pedido
+          </Link>
+        ) : null}
       </div>
 
       {orders.isPending ? (
@@ -43,8 +45,8 @@ export function OrdersPage() {
           </Button>
         </div>
       ) : all.length === 0 ? (
-        <div className="ticket max-w-md px-6 py-8">
-          <h2 className="text-[24px] font-bold tracking-tight">Nenhum pedido por aqui ainda</h2>
+        <div className="card max-w-md p-8">
+          <h2 className="text-[24px] font-extrabold tracking-tight">Nenhum pedido por aqui ainda</h2>
           <p className="mt-2 text-[15px] text-muted">
             Os pedidos que você criar aparecem nesta lista, cada um com o status atual.
           </p>

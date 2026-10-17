@@ -249,5 +249,6 @@ O Vite repassa `/api` para a API (mesma origem também em desenvolvimento, sem C
 - **Mesmas regras do back-end no formulário** (Zod): CEP, senha de 6 a 72 bytes, preço com até 2 casas, ao menos um item. Os erros de campo que a API devolve (`items[0].quantity`, `deliveryAddress.zipCode`) caem no campo certo do formulário.
 - **Fluxo de status espelhado** em `features/orders/status.ts`, testado contra a mesma tabela de transições do back. A tela mostra só as ações possíveis; se outra pessoa mudou o pedido antes (422), a tela recarrega o pedido e explica o que aconteceu.
 - **Sessão**: token no `localStorage`; qualquer 401 em rota protegida encerra a sessão e volta ao login com aviso. Ao sair, o cache é limpo para que dados de um usuário não apareçam para o próximo.
-- **Visual de comanda**: cada pedido é uma tira de papel térmico com borda serrilhada; a fonte monoespaçada aparece só dentro da comanda. Status sempre com cor e texto, foco de teclado visível e animação desligada para quem prefere movimento reduzido.
+- **Identidade da Foody Delivery**: fonte Sen, vermelho da marca, fundo bege quente, cartões arredondados e botões em pílula, seguindo o site e o app da empresa. Status sempre com cor e texto, foco de teclado visível e animação desligada para quem prefere movimento reduzido.
+- **Entrada protegida**: telefone, CEP, quantidade e preço têm máscara enquanto se digita (nenhuma letra entra nesses campos), e a API aplica as mesmas regras.
 

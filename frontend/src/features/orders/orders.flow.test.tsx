@@ -13,6 +13,8 @@ describe('lista de pedidos', () => {
     const { user } = renderApp({ route: '/pedidos', loggedAs: operator })
 
     expect(await screen.findByText('Nenhum pedido por aqui ainda')).toBeInTheDocument()
+    // Uma única chamada para criar pedido na página (além da aba de navegação)
+    expect(screen.getAllByRole('link', { name: /Novo pedido|Criar primeiro pedido/ })).toHaveLength(2)
     await user.click(screen.getByRole('link', { name: 'Criar primeiro pedido' }))
     expect(await screen.findByRole('heading', { name: 'Novo pedido' })).toBeInTheDocument()
   })
@@ -26,7 +28,7 @@ describe('lista de pedidos', () => {
     expect(within(ticket).getByText('Maria Silva')).toBeInTheDocument()
     expect(within(ticket).getByText('Em preparo')).toBeInTheDocument()
     expect(within(ticket).getByText(/99,90/)).toBeInTheDocument()
-    expect(within(ticket).getByText('Bela Vista')).toBeInTheDocument()
+    expect(within(ticket).getByText(/Bela Vista/)).toBeInTheDocument()
   })
 
   it('conta e filtra os pedidos por status', async () => {
@@ -82,7 +84,7 @@ describe('novo pedido', () => {
     expect(db.orders).toHaveLength(0)
   })
 
-  it('monta a comanda e o total enquanto o operador digita', async () => {
+  it('monta o resumo e o total enquanto o operador digita', async () => {
     const operator = seedUser()
     const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
 
@@ -94,12 +96,12 @@ describe('novo pedido', () => {
     await user.type(screen.getByLabelText('Item 2'), 'Refrigerante')
     await user.type(screen.getByLabelText('Preço unitário do item 2'), '9,90')
 
-    const receipt = screen.getByRole('region', { name: 'Comanda' })
+    const receipt = screen.getByRole('region', { name: 'Resumo do pedido' })
     expect(within(receipt).getByText('Pizza')).toBeInTheDocument()
     expect(within(receipt).getByTestId('receipt-total')).toHaveTextContent('99,90')
   })
 
-  it('deixa fora da comanda o item com valor inválido', async () => {
+  it('deixa fora do resumo o item com valor inválido', async () => {
     const operator = seedUser()
     const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
 
@@ -110,7 +112,7 @@ describe('novo pedido', () => {
     // Preço zerado: a máscara aceita os dígitos, mas a regra exige valor maior que zero
     await user.type(screen.getByLabelText('Preço unitário do item 2'), '0,00')
 
-    const receipt = screen.getByRole('region', { name: 'Comanda' })
+    const receipt = screen.getByRole('region', { name: 'Resumo do pedido' })
     expect(within(receipt).queryByText('Refrigerante')).not.toBeInTheDocument()
     expect(within(receipt).getByTestId('receipt-total')).toHaveTextContent('45,00')
   })
@@ -143,7 +145,7 @@ describe('novo pedido', () => {
     expect(screen.queryByRole('button', { name: 'Remover item 1' })).not.toBeInTheDocument()
   })
 
-  it('cria o pedido e abre a comanda dele', async () => {
+  it('cria o pedido e abre o detalhe dele', async () => {
     const operator = seedUser()
     const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
 
@@ -154,6 +156,8 @@ describe('novo pedido', () => {
 
     expect(await screen.findByRole('heading', { name: 'Pedido #0001' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Pedido criado')
+    // O detalhe abre no topo, e não na altura em que o formulário estava rolado
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0)
     expect(db.orders[0]?.deliveryAddress.zipCode).toBe('01310100')
     expect(db.orders[0]?.items[0]).toMatchObject({ name: 'Pizza', quantity: 1, unitPrice: 45 })
   })

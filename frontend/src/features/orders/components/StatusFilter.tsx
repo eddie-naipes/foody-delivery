@@ -34,13 +34,13 @@ export function StatusFilter({ orders, value, onChange }: StatusFilterProps) {
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[15px] font-medium transition-colors',
-              active ? 'bg-ink text-paper' : 'bg-paper text-ink ring-1 ring-inset ring-ink/15 hover:ring-ink/35',
+              'inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[15px] font-bold transition-colors',
+              active ? 'bg-brand text-paper shadow-brand' : 'bg-paper text-ink ring-1 ring-inset ring-line hover:ring-coral/60',
             )}
           >
             {option.dot ? <span aria-hidden="true" className={cn('size-2 rounded-full', option.dot)} /> : null}
             {option.label}
-            <span className={cn('font-mono text-[13px]', active ? 'text-paper/80' : 'text-muted')}>{option.count}</span>
+            <span className={cn('text-[13px] tabular-nums', active ? 'text-paper/85' : 'text-muted')}>{option.count}</span>
           </button>
         )
       })}

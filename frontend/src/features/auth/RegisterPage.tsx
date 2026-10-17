@@ -35,11 +35,11 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Criar conta"
-      subtitle="Você já entra na expedição assim que terminar."
+      subtitle="Você já entra no sistema assim que terminar."
       footer={
         <>
           Já tem conta?{' '}
-          <Link to="/login" className="font-semibold text-ink underline underline-offset-4">
+          <Link to="/login" className="font-bold text-brand underline-offset-4 hover:underline">
             Entrar
           </Link>
         </>

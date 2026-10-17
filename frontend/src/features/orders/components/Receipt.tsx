@@ -23,7 +23,7 @@ interface ReceiptProps {
   children?: ReactNode
 }
 
-/** A comanda impressa: o elemento central da interface. */
+/** Resumo do pedido: cliente, onde entregar, itens e total. */
 export function Receipt({
   orderId,
   createdAt,
@@ -36,25 +36,37 @@ export function Receipt({
   children,
 }: ReceiptProps) {
   return (
-    <section aria-label="Comanda" className="ticket px-6 pt-5 pb-6 font-mono text-[13px] text-ink">
+    <section aria-label="Resumo do pedido" className="card p-6 text-[15px] text-ink">
       <div className="flex items-baseline justify-between gap-4">
-        <span className="text-[36px] leading-none font-semibold">
-          {orderId ? formatOrderNumber(orderId) : '#----'}
+        <span className="text-[30px] leading-none font-extrabold text-brand tabular-nums">
+          {orderId ? formatOrderNumber(orderId) : 'Novo pedido'}
         </span>
-        <span className="text-right text-muted">{createdAt ? formatDateTime(createdAt) : 'novo pedido'}</span>
+        {createdAt ? <span className="text-right text-[13px] text-muted">{formatDateTime(createdAt)}</span> : null}
       </div>
 
-      <div className="ticket-rule mt-4 pt-3">
-        <p className="text-[15px] font-semibold">{customerName || 'Cliente'}</p>
-        {customerPhone ? <p className="text-muted">{formatPhone(customerPhone)}</p> : null}
-        {addressLines.map((line) => (
-          <p key={line} className="text-muted">
-            {line}
-          </p>
-        ))}
-      </div>
+      <dl className="card-divider mt-5 flex flex-col gap-3 pt-4">
+        <div>
+          <dt className="font-bold">Cliente:</dt>
+          <dd className="text-muted">
+            {customerName || 'Ainda não informado'}
+            {customerPhone ? <span className="block">{formatPhone(customerPhone)}</span> : null}
+          </dd>
+        </div>
+        <div>
+          <dt className="font-bold">Entregar em:</dt>
+          <dd className="text-muted">
+            {addressLines.length === 0
+              ? 'Ainda não informado'
+              : addressLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+          </dd>
+        </div>
+      </dl>
 
-      <div className="ticket-rule mt-4 pt-3">
+      <div className="card-divider mt-5 pt-4">
         {lines.length === 0 ? (
           <p className="text-muted">Os itens aparecem aqui conforme você digita.</p>
         ) : (
@@ -70,12 +82,14 @@ export function Receipt({
             <tbody>
               {lines.map((line) => (
                 <tr key={line.key} className={animateLines ? 'print-in align-top' : 'align-top'}>
-                  <td className="w-10 py-1 pr-2">{line.quantity}x</td>
-                  <td className="py-1 pr-2 break-words">
-                    <span className="block">{line.name}</span>
-                    <span className="block text-muted">{formatMoney(line.unitPrice)} un.</span>
+                  <td className="w-10 py-1.5 pr-2 font-bold text-brand tabular-nums">{line.quantity}x</td>
+                  <td className="py-1.5 pr-2 break-words">
+                    <span className="block font-bold">{line.name}</span>
+                    <span className="block text-[13px] text-muted">{formatMoney(line.unitPrice)} cada</span>
                   </td>
-                  <td className="py-1 text-right whitespace-nowrap">{formatMoney(line.quantity * line.unitPrice)}</td>
+                  <td className="py-1.5 text-right whitespace-nowrap tabular-nums">
+                    {formatMoney(line.quantity * line.unitPrice)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -83,9 +97,9 @@ export function Receipt({
         )}
       </div>
 
-      <div className="ticket-rule mt-4 flex items-baseline justify-between pt-3">
-        <span className="text-[15px] font-semibold">Total</span>
-        <span data-testid="receipt-total" className="text-[24px] font-semibold">
+      <div className="mt-5 flex items-baseline justify-between rounded-2xl bg-blush px-4 py-3">
+        <span className="font-extrabold">Total</span>
+        <span data-testid="receipt-total" className="text-[24px] font-extrabold text-brand tabular-nums">
           {formatMoney(total)}
         </span>
       </div>
