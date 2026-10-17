@@ -1,3 +1,7 @@
+server:
+  # A API só é acessível pelo Nginx do front: confia nos cabeçalhos X-Forwarded-* dele
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: foody-delivery

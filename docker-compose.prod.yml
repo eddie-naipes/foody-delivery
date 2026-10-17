@@ -1,0 +1,27 @@
+# Produção atrás do Traefik (Dokploy) da VPS, com HTTPS automático (Let's Encrypt).
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --wait
+# Requer no .env: JWT_SECRET e APP_DOMAIN (ex.: foody.cardap.live).
+services:
+  foody-web:
+    # O Traefik já ocupa as portas 80/443 do servidor: nada é publicado diretamente
+    ports: !reset []
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.foody-web.rule=Host(`${APP_DOMAIN:?Defina APP_DOMAIN no .env}`)
+      - traefik.http.routers.foody-web.entrypoints=web
+      - traefik.http.routers.foody-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.foody-web.service=foody-web
+      - traefik.http.routers.foody-websecure.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.foody-websecure.entrypoints=websecure
+      - traefik.http.routers.foody-websecure.tls.certresolver=letsencrypt
+      - traefik.http.routers.foody-websecure.service=foody-web
+      - traefik.http.services.foody-web.loadbalancer.server.port=80
+
+networks:
+  # Rede do Traefik do Dokploy; a API não entra nela e fica acessível só pelo foody-web
+  dokploy-network:
+    external: true

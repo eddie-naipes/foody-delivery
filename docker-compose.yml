@@ -1,5 +1,6 @@
 services:
-  api:
+  # Nomes únicos (foody-*): no servidor, a rede do Traefik é compartilhada com outros projetos
+  foody-api:
     build: ./backend
     image: foody-delivery-api
     container_name: foody-api
@@ -21,13 +22,13 @@ services:
       retries: 30
       start_period: 10s
 
-  web:
+  foody-web:
     build: ./frontend
     image: foody-delivery-web
     container_name: foody-web
     restart: unless-stopped
     depends_on:
-      api:
+      foody-api:
         condition: service_healthy
     ports:
       - "${WEB_PORT:-80}:80"

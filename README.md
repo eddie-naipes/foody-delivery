@@ -11,17 +11,17 @@ Sistema simplificado de rastreamento de pedidos de delivery: usuários autentica
 
 ## Rodando tudo com Docker
 
-O jeito mais rápido de ver o sistema completo. Sobem dois containers: `web` (Nginx servindo o front e repassando `/api`) e `api` (Spring Boot). Só o `web` fica exposto; a API é acessível apenas pela rede interna, e o front e a API compartilham a mesma origem, sem CORS.
+O jeito mais rápido de ver o sistema completo. Sobem dois containers: `foody-web` (Nginx servindo o front e repassando `/api`) e `foody-api` (Spring Boot). Só o `foody-web` fica exposto; a API é acessível apenas pela rede interna, e o front e a API compartilham a mesma origem, sem CORS.
 
 ```bash
 cp .env.example .env              # defina JWT_SECRET (openssl rand -base64 48)
 docker compose up -d --build --wait   # aplicação em http://localhost (retorna quando tudo está saudável)
-docker compose logs -f api        # acompanhar os logs da API
+docker compose logs -f foody-api  # acompanhar os logs da API
 ```
 
 - O compose **não sobe sem `JWT_SECRET`** no `.env`, para evitar rodar em produção com a chave de desenvolvimento.
 - O banco SQLite fica no volume `foody-data` e sobrevive a restarts e rebuilds.
-- O `web` só inicia depois que a API está aceitando conexões (healthcheck), então ninguém vê erro 502 durante a subida.
+- O `foody-web` só inicia depois que a API está aceitando conexões (healthcheck), então ninguém vê erro 502 durante a subida.
 - As duas imagens são construídas em dois estágios (só o necessário vai para produção); a API roda com usuário sem privilégios.
 - Para usar outra porta: `WEB_PORT=8081` no `.env`.
 
@@ -33,7 +33,7 @@ docker compose logs -f api        # acompanhar os logs da API
 4. `docker compose up -d --build --wait`
 5. Para atualizar: `git pull && docker compose up -d --build --wait` — os dados permanecem no volume.
 
-> Para HTTPS, coloque um proxy reverso (Caddy ou Nginx + Let's Encrypt) na frente da porta do `web` e libere no firewall apenas as portas 80/443.
+> Para HTTPS, coloque um proxy reverso (Caddy ou Nginx + Let's Encrypt) na frente da porta do `foody-web` e libere no firewall apenas as portas 80/443.
 
 ---
 
