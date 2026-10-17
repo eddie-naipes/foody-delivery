@@ -141,6 +141,23 @@ class OrderControllerIT {
 	}
 
 	@Test
+	void createWithInvalidPhoneReturns400() throws Exception {
+		for (String phone : new String[] { "abc", "11 9999 abcd", "9999-8888", "(11) 99999-88889" }) {
+			createOrder(VALID_ORDER.formatted("Maria").replace("11999998888", phone))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.fieldErrors[?(@.field == 'customerPhone')].message")
+					.value(hasItem(Messages.CUSTOMER_PHONE_INVALID)));
+		}
+	}
+
+	@Test
+	void createStoresPhoneDigitsOnly() throws Exception {
+		createOrder(VALID_ORDER.formatted("Maria").replace("11999998888", "(11) 99999-8888"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.customerPhone").value("11999998888"));
+	}
+
+	@Test
 	void createWithoutAddressReturns400() throws Exception {
 		createOrder("""
 				{"customerName": "Maria", "customerPhone": "1199",

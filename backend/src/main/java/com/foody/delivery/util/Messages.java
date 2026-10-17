@@ -20,6 +20,7 @@ public final class Messages {
 	// --- Validação: pedido ---
 	public static final String CUSTOMER_NAME_REQUIRED = "Nome do cliente é obrigatório";
 	public static final String CUSTOMER_PHONE_REQUIRED = "Telefone do cliente é obrigatório";
+	public static final String CUSTOMER_PHONE_INVALID = "Telefone com DDD: 10 ou 11 dígitos";
 	public static final String DELIVERY_ADDRESS_REQUIRED = "Endereço de entrega é obrigatório";
 	public static final String ITEMS_REQUIRED = "O pedido deve ter ao menos um item";
 	public static final String ITEM_REQUIRED = "Item não pode ser nulo";

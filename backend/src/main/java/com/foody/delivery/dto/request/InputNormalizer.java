@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
  */
 final class InputNormalizer {
 
+	private static final Pattern PHONE_CHARACTERS = Pattern.compile("[\\d\\s()+-]+");
+
 	private static final Pattern HYPHENATED_ZIP_CODE = Pattern.compile("\\d{5}-\\d{3}");
 
 	private InputNormalizer() {
@@ -21,6 +23,18 @@ final class InputNormalizer {
 
 	static String email(String value) {
 		return value == null ? null : value.trim().toLowerCase(Locale.ROOT);
+	}
+
+	/**
+	 * Aceita telefone com pontuação ("(11) 99999-8888") e guarda só os dígitos. Se houver
+	 * letras, mantém como veio para o {@code @Pattern} rejeitar.
+	 */
+	static String phone(String value) {
+		if (value == null) {
+			return null;
+		}
+		String trimmed = value.trim();
+		return PHONE_CHARACTERS.matcher(trimmed).matches() ? trimmed.replaceAll("\\D", "") : trimmed;
 	}
 
 	/** Campo opcional: texto em branco vira nulo. */

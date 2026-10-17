@@ -49,6 +49,18 @@ class OrderRequestNormalizationTest {
 	}
 
 	@Test
+	void createOrderRequestKeepsOnlyPhoneDigits() {
+		assertThat(new CreateOrderRequest("Maria", " (11) 99999-8888 ", null, null).customerPhone())
+			.isEqualTo("11999998888");
+	}
+
+	@Test
+	void createOrderRequestKeepsPhoneWithLettersForValidation() {
+		assertThat(new CreateOrderRequest("Maria", "11 9999 abcd", null, null).customerPhone()).isEqualTo("11 9999 abcd");
+		assertThat(new CreateOrderRequest("Maria", null, null, null).customerPhone()).isNull();
+	}
+
+	@Test
 	void orderItemRequestTrimsName() {
 		OrderItemRequest item = new OrderItemRequest(" Pizza ", 1, BigDecimal.TEN);
 

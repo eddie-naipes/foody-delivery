@@ -8,12 +8,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 public record CreateOrderRequest(
 		@NotBlank(message = Messages.CUSTOMER_NAME_REQUIRED)
 		String customerName,
 
 		@NotBlank(message = Messages.CUSTOMER_PHONE_REQUIRED)
+		@Pattern(regexp = "\\d{10,11}", message = Messages.CUSTOMER_PHONE_INVALID)
 		String customerPhone,
 
 		@NotNull(message = Messages.DELIVERY_ADDRESS_REQUIRED)
@@ -25,7 +27,7 @@ public record CreateOrderRequest(
 
 	public CreateOrderRequest {
 		customerName = InputNormalizer.trim(customerName);
-		customerPhone = InputNormalizer.trim(customerPhone);
+		customerPhone = InputNormalizer.phone(customerPhone);
 	}
 
 }
