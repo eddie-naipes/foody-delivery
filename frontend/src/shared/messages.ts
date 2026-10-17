@@ -18,6 +18,7 @@ export const MESSAGES = {
 
   customerNameRequired: 'Informe o nome do cliente',
   customerPhoneRequired: 'Informe o telefone do cliente',
+  customerPhoneInvalid: 'Telefone com DDD: 10 ou 11 dígitos',
   streetRequired: 'Informe a rua',
   numberRequired: 'Informe o número',
   neighborhoodRequired: 'Informe o bairro',

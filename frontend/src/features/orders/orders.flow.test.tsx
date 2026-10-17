@@ -107,11 +107,28 @@ describe('novo pedido', () => {
     await user.type(screen.getByLabelText('Preço unitário do item 1'), '45,00')
     await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
     await user.type(screen.getByLabelText('Item 2'), 'Refrigerante')
-    await user.type(screen.getByLabelText('Preço unitário do item 2'), '9,999')
+    // Preço zerado: a máscara aceita os dígitos, mas a regra exige valor maior que zero
+    await user.type(screen.getByLabelText('Preço unitário do item 2'), '0,00')
 
     const receipt = screen.getByRole('region', { name: 'Comanda' })
     expect(within(receipt).queryByText('Refrigerante')).not.toBeInTheDocument()
     expect(within(receipt).getByTestId('receipt-total')).toHaveTextContent('45,00')
+  })
+
+  it('não deixa digitar letras em telefone, CEP, quantidade e preço', async () => {
+    const operator = seedUser()
+    const { user } = renderApp({ route: '/pedidos/novo', loggedAs: operator })
+
+    await user.type(await screen.findByLabelText('Telefone'), 'tel 11a99999b8888')
+    await user.type(screen.getByLabelText('CEP'), '01310abc100')
+    await user.clear(screen.getByLabelText('Quantidade do item 1'))
+    await user.type(screen.getByLabelText('Quantidade do item 1'), 'x2y')
+    await user.type(screen.getByLabelText('Preço unitário do item 1'), 'R$ 45,999')
+
+    expect(screen.getByLabelText('Telefone')).toHaveValue('(11) 99999-8888')
+    expect(screen.getByLabelText('CEP')).toHaveValue('01310-100')
+    expect(screen.getByLabelText('Quantidade do item 1')).toHaveValue('2')
+    expect(screen.getByLabelText('Preço unitário do item 1')).toHaveValue('45,99')
   })
 
   it('remove um item da lista', async () => {

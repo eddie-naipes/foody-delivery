@@ -47,11 +47,12 @@ export function RegisterPage() {
     >
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
         {error ? <Alert tone="error">{error}</Alert> : null}
-        <TextField label="Nome" autoComplete="name" error={errors.name?.message} {...form.register('name')} />
+        <TextField label="Nome" autoComplete="name" maxLength={100} error={errors.name?.message} {...form.register('name')} />
         <TextField
           label="E-mail"
           type="email"
           autoComplete="email"
+          maxLength={254}
           error={errors.email?.message}
           {...form.register('email')}
         />

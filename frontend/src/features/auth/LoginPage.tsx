@@ -49,6 +49,7 @@ export function LoginPage() {
           label="E-mail"
           type="email"
           autoComplete="email"
+          maxLength={254}
           error={errors.email?.message}
           {...form.register('email')}
         />

@@ -23,7 +23,7 @@ export const itemSchema = z.object({
 
 export const orderFormSchema = z.object({
   customerName: required(MESSAGES.customerNameRequired),
-  customerPhone: required(MESSAGES.customerPhoneRequired),
+  customerPhone: required(MESSAGES.customerPhoneRequired).refine(isPhone, MESSAGES.customerPhoneInvalid),
   deliveryAddress: z.object({
     street: required(MESSAGES.streetRequired),
     number: required(MESSAGES.numberRequired),
@@ -36,6 +36,12 @@ export const orderFormSchema = z.object({
 })
 
 export type OrderFormValues = z.input<typeof orderFormSchema>
+
+/** Telefone com DDD: só dígitos e pontuação de telefone, com 10 ou 11 dígitos. */
+function isPhone(value: string): boolean {
+  const digits = value.replace(/\D/g, '')
+  return /^[\d\s()+-]*$/.test(value) && (digits.length === 10 || digits.length === 11)
+}
 
 function hasAtMostTwoDecimals(value: string): boolean {
   return Math.round(parseMoney(value) * 100) === parseMoney(value) * 100
@@ -58,7 +64,7 @@ export function toCreateOrderInput(values: OrderFormValues): CreateOrderInput {
   const { deliveryAddress: address } = values
   return {
     customerName: values.customerName.trim(),
-    customerPhone: values.customerPhone.trim(),
+    customerPhone: values.customerPhone.replace(/\D/g, ''),
     deliveryAddress: {
       street: address.street.trim(),
       number: address.number.trim(),

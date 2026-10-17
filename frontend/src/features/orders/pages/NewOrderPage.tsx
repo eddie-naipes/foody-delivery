@@ -6,8 +6,10 @@ import { Link, useNavigate } from 'react-router'
 import { toApiError } from '@/shared/api/errors'
 import { applyApiFieldErrors } from '@/shared/api/fieldErrors'
 import { parseMoney } from '@/shared/lib/format'
+import { maskDigits, maskMoney, maskPhone, maskZipCode } from '@/shared/lib/masks'
 import { Alert } from '@/shared/ui/Alert'
 import { Button } from '@/shared/ui/Button'
+import { masked } from '@/shared/ui/masked'
 import { TextField } from '@/shared/ui/TextField'
 
 import { addressLines } from '../address'
@@ -61,6 +63,7 @@ export function NewOrderPage() {
               <TextField
                 label="Nome do cliente"
                 autoComplete="off"
+                maxLength={100}
                 error={errors.customerName?.message}
                 {...form.register('customerName')}
               />
@@ -69,8 +72,10 @@ export function NewOrderPage() {
                 type="tel"
                 inputMode="tel"
                 autoComplete="off"
+                placeholder="(11) 99999-8888"
+                maxLength={15}
                 error={errors.customerPhone?.message}
-                {...form.register('customerPhone')}
+                {...masked(form.register('customerPhone'), maskPhone)}
               />
             </div>
           </fieldset>
@@ -78,28 +83,30 @@ export function NewOrderPage() {
           <fieldset className="flex flex-col gap-4">
             <legend className="mb-3 text-[18px] font-bold">Endereço de entrega</legend>
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_120px]">
-              <TextField label="Rua" error={errors.deliveryAddress?.street?.message} {...form.register('deliveryAddress.street')} />
-              <TextField label="Número" error={errors.deliveryAddress?.number?.message} {...form.register('deliveryAddress.number')} />
+              <TextField label="Rua" maxLength={120} error={errors.deliveryAddress?.street?.message} {...form.register('deliveryAddress.street')} />
+              <TextField label="Número" maxLength={10} error={errors.deliveryAddress?.number?.message} {...form.register('deliveryAddress.number')} />
             </div>
             <TextField
               label="Complemento"
               hint="Opcional. Apartamento, bloco, ponto de referência."
+              maxLength={120}
               {...form.register('deliveryAddress.complement')}
             />
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_140px]">
               <TextField
                 label="Bairro"
+                maxLength={80}
                 error={errors.deliveryAddress?.neighborhood?.message}
                 {...form.register('deliveryAddress.neighborhood')}
               />
-              <TextField label="Cidade" error={errors.deliveryAddress?.city?.message} {...form.register('deliveryAddress.city')} />
+              <TextField label="Cidade" maxLength={80} error={errors.deliveryAddress?.city?.message} {...form.register('deliveryAddress.city')} />
               <TextField
                 label="CEP"
                 inputMode="numeric"
                 placeholder="00000-000"
                 maxLength={9}
                 error={errors.deliveryAddress?.zipCode?.message}
-                {...form.register('deliveryAddress.zipCode')}
+                {...masked(form.register('deliveryAddress.zipCode'), maskZipCode)}
               />
             </div>
           </fieldset>
@@ -121,6 +128,7 @@ export function NewOrderPage() {
                         label={`Item ${position}`}
                         className="col-span-2 sm:col-span-1"
                         placeholder="Ex.: Pizza margherita"
+                        maxLength={100}
                         error={itemErrors?.name?.message}
                         {...form.register(`items.${index}.name`)}
                       />
@@ -128,16 +136,18 @@ export function NewOrderPage() {
                         label="Qtd."
                         aria-label={`Quantidade do item ${position}`}
                         inputMode="numeric"
+                        maxLength={3}
                         error={itemErrors?.quantity?.message}
-                        {...form.register(`items.${index}.quantity`)}
+                        {...masked(form.register(`items.${index}.quantity`), (value) => maskDigits(value, 3))}
                       />
                       <TextField
                         label="Preço"
                         aria-label={`Preço unitário do item ${position}`}
                         inputMode="decimal"
                         placeholder="0,00"
+                        maxLength={11}
                         error={itemErrors?.unitPrice?.message}
-                        {...form.register(`items.${index}.unitPrice`)}
+                        {...masked(form.register(`items.${index}.unitPrice`), maskMoney)}
                       />
                     </div>
                     {itemErrors?.message ? <p className="text-[13px] text-danger">{itemErrors.message}</p> : null}

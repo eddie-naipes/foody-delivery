@@ -47,6 +47,14 @@ describe('formulário de pedido', () => {
     expect(errorPaths(form)).toEqual(['deliveryAddress.zipCode'])
   })
 
+  it.each(['11999998888', '(11) 99999-8888', '(11) 3333-4444'])('aceita o telefone %s', (phone) => {
+    expect(errorPaths({ ...validForm(), customerPhone: phone })).toEqual([])
+  })
+
+  it.each(['abc', '9999-8888', '(11) 99999-88889', 'onze 99999-8888'])('rejeita o telefone %s', (phone) => {
+    expect(errorPaths({ ...validForm(), customerPhone: phone })).toEqual(['customerPhone'])
+  })
+
   it('exige ao menos um item', () => {
     expect(errorPaths({ ...validForm(), items: [] })).toEqual(['items'])
   })
@@ -57,8 +65,8 @@ describe('formulário de pedido', () => {
     expect(errorPaths(form)).toEqual(['items.0.name', 'items.0.quantity', 'items.0.unitPrice'])
   })
 
-  it('converte o formulário no corpo esperado pela API', () => {
-    expect(toCreateOrderInput(validForm())).toEqual({
+  it('converte o formulário no corpo esperado pela API (telefone só com dígitos)', () => {
+    expect(toCreateOrderInput({ ...validForm(), customerPhone: '(11) 99999-8888' })).toEqual({
       customerName: 'Maria Silva',
       customerPhone: '11999998888',
       deliveryAddress: {
