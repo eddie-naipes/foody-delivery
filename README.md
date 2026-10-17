@@ -15,7 +15,7 @@ O jeito mais rápido de ver o sistema completo. Sobem dois containers: `web` (Ng
 
 ```bash
 cp .env.example .env              # defina JWT_SECRET (openssl rand -base64 48)
-docker compose up -d --build      # aplicação em http://localhost
+docker compose up -d --build --wait   # aplicação em http://localhost (retorna quando tudo está saudável)
 docker compose logs -f api        # acompanhar os logs da API
 ```
 
@@ -30,8 +30,8 @@ docker compose logs -f api        # acompanhar os logs da API
 1. Instale o Docker: `curl -fsSL https://get.docker.com | sh`
 2. Clone o repositório e entre na pasta.
 3. `cp .env.example .env` e preencha `JWT_SECRET`.
-4. `docker compose up -d --build`
-5. Para atualizar: `git pull && docker compose up -d --build` — os dados permanecem no volume.
+4. `docker compose up -d --build --wait`
+5. Para atualizar: `git pull && docker compose up -d --build --wait` — os dados permanecem no volume.
 
 > Para HTTPS, coloque um proxy reverso (Caddy ou Nginx + Let's Encrypt) na frente da porta do `web` e libere no firewall apenas as portas 80/443.
 
