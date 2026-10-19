@@ -1,0 +1,3 @@
+# Área do operador: só as telas de entrada podem aparecer em buscadores
+User-agent: *
+Disallow: /pedidos

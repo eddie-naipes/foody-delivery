@@ -15,7 +15,7 @@ export function Brand({ className, inverted = false }: { className?: string; inv
       </span>
       <span className="text-[18px] leading-none font-extrabold tracking-tight">
         <span className={inverted ? 'text-paper' : 'text-ink'}>Foody</span>{' '}
-        <span className={inverted ? 'text-paper/85' : 'text-coral'}>Delivery</span>
+        <span className={inverted ? 'text-paper/85' : 'text-coral-ink'}>Delivery</span>
       </span>
     </span>
   )

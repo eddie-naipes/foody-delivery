@@ -12,14 +12,17 @@
   --color-brand: #d30101;
   --color-brand-strong: #b00000;
   --color-coral: #ff5c5c;
+  /* Coral para texto sobre branco: o #ff5c5c dá 3,0:1, abaixo dos 4,5:1 do WCAG AA; este dá 4,6:1 */
+  --color-coral-ink: #d93636;
   --color-blush: #fff0ef;
   --color-danger: #b42318;
 
-  --color-status-received: #2563eb;
-  --color-status-preparing: #c2410c;
-  --color-status-out: #7c3aed;
-  --color-status-delivered: #15803d;
-  --color-status-canceled: #6b7280;
+  /* Status: texto sobre o próprio tom a 10% (etiquetas) com pelo menos 5:1 de contraste */
+  --color-status-received: #1d4ed8;
+  --color-status-preparing: #b13a0a;
+  --color-status-out: #6d28d9;
+  --color-status-delivered: #13733a;
+  --color-status-canceled: #5d6470;
 
   --shadow-brand: 0 12px 28px -12px rgb(211 1 1 / 0.55);
 }
