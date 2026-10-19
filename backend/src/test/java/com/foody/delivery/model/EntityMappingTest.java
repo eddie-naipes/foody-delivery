@@ -60,4 +60,29 @@ class EntityMappingTest {
 		assertThat(reloaded.getTotalAmount()).isEqualByComparingTo("99.90");
 	}
 
+	@Test
+	void persistsAndReloadsStatusHistoryInOrder() {
+		User creator = em.persist(new User("Operador", "op@foody.com", "hash"));
+		User courier = em.persist(new User("Expedição", "expedicao@foody.com", "hash"));
+		Order order = new Order("Maria Silva", "11999998888",
+				new Address("Rua A", "1", null, "Centro", "São Paulo", "01001000"), creator);
+		order.addItem(new OrderItem("Pizza", 1, new BigDecimal("45.00")));
+		Long id = em.persistAndGetId(order, Long.class);
+		em.flush();
+		order.changeStatus(OrderStatus.EM_PREPARO, courier);
+		em.flush();
+		em.clear();
+
+		Order reloaded = em.find(Order.class, id);
+
+		assertThat(reloaded.getStatusHistory()).extracting(OrderStatusChange::getStatus)
+			.containsExactly(OrderStatus.RECEBIDO, OrderStatus.EM_PREPARO);
+		assertThat(reloaded.getStatusHistory()).extracting(change -> change.getChangedBy().getName())
+			.containsExactly("Operador", "Expedição");
+		assertThat(reloaded.getStatusHistory()).allSatisfy(change -> {
+			assertThat(change.getId()).isNotNull();
+			assertThat(change.getChangedAt()).isNotNull();
+		});
+	}
+
 }

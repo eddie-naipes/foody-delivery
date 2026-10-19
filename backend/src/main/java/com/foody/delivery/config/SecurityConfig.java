@@ -30,10 +30,14 @@ import com.foody.delivery.util.Messages;
 
 /**
  * Segurança stateless: sem sessão e sem CSRF (não há cookies); a identidade vem do
- * token JWT em cada requisição. Apenas {@code /api/auth/**} é público.
+ * token JWT em cada requisição. Públicos: autenticação, a documentação da API e o
+ * health check. Todo o resto exige token.
  */
 @Configuration
 public class SecurityConfig {
+
+	static final String[] PUBLIC_PATHS = { "/api/auth/**", "/error", "/swagger-ui.html", "/swagger-ui/**",
+			"/v3/api-docs/**", "/actuator/health", "/actuator/info" };
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService,
@@ -41,7 +45,7 @@ public class SecurityConfig {
 		return http.csrf(AbstractHttpConfigurer::disable)
 			.cors(Customizer.withDefaults())
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**", "/error")
+			.authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_PATHS)
 				.permitAll()
 				.anyRequest()
 				.authenticated())

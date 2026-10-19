@@ -2,6 +2,9 @@ package com.foody.delivery.model;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,6 +26,8 @@ public class OrderItem {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	// No SQLite a chave autoincrementada precisa ser INTEGER (alias do rowid), não BIGINT
+	@JdbcTypeCode(SqlTypes.INTEGER)
 	private Long id;
 
 	@Column(nullable = false)

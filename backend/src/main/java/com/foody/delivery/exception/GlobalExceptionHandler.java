@@ -13,6 +13,7 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.foody.delivery.dto.response.ApiError;
@@ -35,6 +36,19 @@ public class GlobalExceptionHandler {
 			.getFieldErrors()
 			.stream()
 			.map(error -> new ApiError.FieldError(error.getField(), error.getDefaultMessage()))
+			.toList();
+		return build(ApiError.of(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED, fieldErrors));
+	}
+
+	/** Parâmetros de query fora dos limites (ex.: {@code ?size=500}): um erro por parâmetro. */
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	public ResponseEntity<ApiError> handleParameterValidation(HandlerMethodValidationException ex) {
+		List<ApiError.FieldError> fieldErrors = ex.getParameterValidationResults()
+			.stream()
+			.flatMap(result -> result.getResolvableErrors()
+				.stream()
+				.map(error -> new ApiError.FieldError(result.getMethodParameter().getParameterName(),
+						error.getDefaultMessage())))
 			.toList();
 		return build(ApiError.of(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED, fieldErrors));
 	}

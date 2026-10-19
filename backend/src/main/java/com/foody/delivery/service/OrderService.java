@@ -1,12 +1,19 @@
 package com.foody.delivery.service;
 
-import java.util.List;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.foody.delivery.dto.request.CreateOrderRequest;
 import com.foody.delivery.dto.response.OrderResponse;
+import com.foody.delivery.dto.response.PageResponse;
+import com.foody.delivery.dto.response.StatusCountResponse;
 import com.foody.delivery.exception.ResourceNotFoundException;
 import com.foody.delivery.mapper.OrderMapper;
 import com.foody.delivery.model.Order;
@@ -43,9 +50,23 @@ public class OrderService {
 		return orderMapper.toResponse(order);
 	}
 
+	/** Uma página da lista, mais recentes primeiro, opcionalmente só de um status. */
 	@Transactional(readOnly = true)
-	public List<OrderResponse> findAll() {
-		return orderMapper.toResponses(orderRepository.findAllNewestFirst());
+	public PageResponse<OrderResponse> findPage(OrderStatus status, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size, OrderRepository.NEWEST_FIRST);
+		Page<Order> orders = status == null ? orderRepository.findAll(pageable)
+				: orderRepository.findByStatus(status, pageable);
+		return PageResponse.from(orders.map(orderMapper::toResponse));
+	}
+
+	/** Contagem por status, com zero para os que não têm pedidos. */
+	@Transactional(readOnly = true)
+	public StatusCountResponse countByStatus() {
+		Map<OrderStatus, Long> byStatus = new EnumMap<>(OrderStatus.class);
+		Arrays.stream(OrderStatus.values()).forEach(status -> byStatus.put(status, 0L));
+		orderRepository.countByStatus().forEach(count -> byStatus.put(count.status(), count.total()));
+		long total = byStatus.values().stream().mapToLong(Long::longValue).sum();
+		return new StatusCountResponse(total, byStatus);
 	}
 
 	@Transactional(readOnly = true)
@@ -54,12 +75,12 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponse updateStatus(Long id, OrderStatus status) {
+	public OrderResponse updateStatus(Long id, OrderStatus status, User changedBy) {
 		Order order = getOrder(id);
 		OrderStatus previous = order.getStatus();
-		order.changeStatus(status);
-		log.info("Status do pedido {} alterado: {} -> {}", id, previous, status);
-		// flush antecipado para que o updatedAt da resposta já reflita a alteração
+		order.changeStatus(status, changedBy);
+		log.info("Status do pedido {} alterado: {} -> {}, por={}", id, previous, status, changedBy.getId());
+		// flush antecipado para que o updatedAt e a nova etapa do histórico já venham na resposta
 		orderRepository.flush();
 		return orderMapper.toResponse(order);
 	}

@@ -32,6 +32,10 @@ public final class Messages {
 	public static final String UNIT_PRICE_DECIMALS = "Preço unitário deve ter no máximo 2 casas decimais";
 	public static final String STATUS_REQUIRED = "Status é obrigatório";
 
+	// --- Validação: paginação ---
+	public static final String PAGE_MIN = "Página deve ser 0 ou maior";
+	public static final String PAGE_SIZE_RANGE = "Tamanho da página deve ser entre 1 e 100";
+
 	// --- Validação: endereço ---
 	public static final String STREET_REQUIRED = "Logradouro é obrigatório";
 	public static final String NUMBER_REQUIRED = "Número é obrigatório";

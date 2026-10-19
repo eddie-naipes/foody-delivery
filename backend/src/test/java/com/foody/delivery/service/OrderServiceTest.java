@@ -2,6 +2,7 @@ package com.foody.delivery.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,11 +21,17 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.foody.delivery.dto.request.AddressRequest;
 import com.foody.delivery.dto.request.CreateOrderRequest;
 import com.foody.delivery.dto.request.OrderItemRequest;
 import com.foody.delivery.dto.response.OrderResponse;
+import com.foody.delivery.dto.response.PageResponse;
+import com.foody.delivery.dto.response.StatusChangeResponse;
+import com.foody.delivery.dto.response.StatusCountResponse;
 import com.foody.delivery.exception.InvalidStatusTransitionException;
 import com.foody.delivery.exception.ResourceNotFoundException;
 import com.foody.delivery.mapper.OrderMapper;
@@ -33,6 +40,7 @@ import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderStatus;
 import com.foody.delivery.model.User;
 import com.foody.delivery.repository.OrderRepository;
+import com.foody.delivery.repository.StatusCount;
 import com.foody.delivery.util.Messages;
 
 @ExtendWith({ MockitoExtension.class, OutputCaptureExtension.class })
@@ -92,18 +100,49 @@ class OrderServiceTest {
 	void updateStatusLogsTransition(CapturedOutput output) {
 		when(orderRepository.findById(1L)).thenReturn(Optional.of(existingOrder()));
 
-		orderService.updateStatus(1L, OrderStatus.EM_PREPARO);
+		orderService.updateStatus(1L, OrderStatus.EM_PREPARO, user);
 
 		assertThat(output).contains("Status do pedido 1 alterado: RECEBIDO -> EM_PREPARO");
 	}
 
 	@Test
-	void findAllReturnsOrdersFromRepositoryInOrder() {
-		Order first = existingOrder();
-		Order second = existingOrder();
-		when(orderRepository.findAllNewestFirst()).thenReturn(List.of(second, first));
+	void findPageWithoutStatusListsAllNewestFirst() {
+		Pageable expected = PageRequest.of(1, 10, OrderRepository.NEWEST_FIRST);
+		when(orderRepository.findAll(expected))
+			.thenReturn(new PageImpl<>(List.of(existingOrder(), existingOrder()), expected, 12));
 
-		assertThat(orderService.findAll()).hasSize(2);
+		PageResponse<OrderResponse> page = orderService.findPage(null, 1, 10);
+
+		assertThat(page.content()).hasSize(2);
+		assertThat(page.page()).isEqualTo(1);
+		assertThat(page.size()).isEqualTo(10);
+		assertThat(page.totalElements()).isEqualTo(12);
+		assertThat(page.totalPages()).isEqualTo(2);
+	}
+
+	@Test
+	void findPageWithStatusFiltersInRepository() {
+		Pageable expected = PageRequest.of(0, 20, OrderRepository.NEWEST_FIRST);
+		when(orderRepository.findByStatus(OrderStatus.EM_PREPARO, expected))
+			.thenReturn(new PageImpl<>(List.of(), expected, 0));
+
+		PageResponse<OrderResponse> page = orderService.findPage(OrderStatus.EM_PREPARO, 0, 20);
+
+		assertThat(page.content()).isEmpty();
+		assertThat(page.totalPages()).isZero();
+	}
+
+	@Test
+	void countByStatusFillsMissingStatusesWithZero() {
+		when(orderRepository.countByStatus()).thenReturn(
+				List.of(new StatusCount(OrderStatus.RECEBIDO, 3L), new StatusCount(OrderStatus.ENTREGUE, 2L)));
+
+		StatusCountResponse counts = orderService.countByStatus();
+
+		assertThat(counts.total()).isEqualTo(5);
+		assertThat(counts.byStatus()).containsExactly(entry(OrderStatus.RECEBIDO, 3L),
+				entry(OrderStatus.EM_PREPARO, 0L), entry(OrderStatus.SAIU_PARA_ENTREGA, 0L),
+				entry(OrderStatus.ENTREGUE, 2L), entry(OrderStatus.CANCELADO, 0L));
 	}
 
 	@Test
@@ -127,10 +166,12 @@ class OrderServiceTest {
 		Order order = existingOrder();
 		when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
-		OrderResponse response = orderService.updateStatus(1L, OrderStatus.EM_PREPARO);
+		OrderResponse response = orderService.updateStatus(1L, OrderStatus.EM_PREPARO, user);
 
 		assertThat(response.status()).isEqualTo(OrderStatus.EM_PREPARO);
 		assertThat(order.getStatus()).isEqualTo(OrderStatus.EM_PREPARO);
+		assertThat(response.statusHistory()).extracting(StatusChangeResponse::status)
+			.containsExactly(OrderStatus.RECEBIDO, OrderStatus.EM_PREPARO);
 		verify(orderRepository).flush();
 	}
 
@@ -138,7 +179,7 @@ class OrderServiceTest {
 	void updateStatusInvalidTransitionThrows() {
 		when(orderRepository.findById(1L)).thenReturn(Optional.of(existingOrder()));
 
-		assertThatThrownBy(() -> orderService.updateStatus(1L, OrderStatus.ENTREGUE))
+		assertThatThrownBy(() -> orderService.updateStatus(1L, OrderStatus.ENTREGUE, user))
 			.isInstanceOf(InvalidStatusTransitionException.class)
 			.hasMessage(Messages.INVALID_STATUS_TRANSITION.formatted(OrderStatus.RECEBIDO, OrderStatus.ENTREGUE));
 	}
@@ -147,7 +188,7 @@ class OrderServiceTest {
 	void updateStatusMissingThrowsNotFound() {
 		when(orderRepository.findById(99L)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> orderService.updateStatus(99L, OrderStatus.EM_PREPARO))
+		assertThatThrownBy(() -> orderService.updateStatus(99L, OrderStatus.EM_PREPARO, user))
 			.isInstanceOf(ResourceNotFoundException.class);
 	}
 

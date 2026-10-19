@@ -14,6 +14,8 @@ class OrderTest {
 
 	private final User user = new User("Operador", "op@foody.com", "hash");
 
+	private final User courier = new User("Expedição", "expedicao@foody.com", "hash");
+
 	private final Address address = new Address("Av. Paulista", "1000", null, "Bela Vista", "São Paulo", "01310100");
 
 	private Order newOrder() {
@@ -73,22 +75,56 @@ class OrderTest {
 	void changeStatusUpdatesValidTransition() {
 		Order order = newOrder();
 
-		order.changeStatus(OrderStatus.EM_PREPARO);
+		order.changeStatus(OrderStatus.EM_PREPARO, courier);
 
 		assertThat(order.getStatus()).isEqualTo(OrderStatus.EM_PREPARO);
 	}
 
 	@Test
+	void newOrderHistoryStartsWithRecebidoByCreator() {
+		Order order = newOrder();
+
+		assertThat(order.getStatusHistory()).singleElement().satisfies(change -> {
+			assertThat(change.getStatus()).isEqualTo(OrderStatus.RECEBIDO);
+			assertThat(change.getChangedBy()).isSameAs(user);
+			assertThat(change.getOrder()).isSameAs(order);
+		});
+	}
+
+	@Test
+	void changeStatusAppendsToHistoryWithWhoChanged() {
+		Order order = newOrder();
+
+		order.changeStatus(OrderStatus.EM_PREPARO, courier);
+		order.changeStatus(OrderStatus.CANCELADO, user);
+
+		assertThat(order.getStatusHistory()).extracting(OrderStatusChange::getStatus)
+			.containsExactly(OrderStatus.RECEBIDO, OrderStatus.EM_PREPARO, OrderStatus.CANCELADO);
+		assertThat(order.getStatusHistory()).extracting(OrderStatusChange::getChangedBy)
+			.containsExactly(user, courier, user);
+	}
+
+	@Test
+	void historyIsUnmodifiable() {
+		Order order = newOrder();
+
+		assertThatThrownBy(() -> order.getStatusHistory().clear())
+			.isInstanceOf(UnsupportedOperationException.class);
+	}
+
+	@Test
 	void changeStatusRejectsInvalidTransition() {
 		Order order = newOrder();
-		order.changeStatus(OrderStatus.EM_PREPARO);
-		order.changeStatus(OrderStatus.SAIU_PARA_ENTREGA);
-		order.changeStatus(OrderStatus.ENTREGUE);
+		order.changeStatus(OrderStatus.EM_PREPARO, user);
+		order.changeStatus(OrderStatus.SAIU_PARA_ENTREGA, user);
+		order.changeStatus(OrderStatus.ENTREGUE, user);
 
-		assertThatThrownBy(() -> order.changeStatus(OrderStatus.EM_PREPARO))
+		assertThatThrownBy(() -> order.changeStatus(OrderStatus.EM_PREPARO, user))
 			.isInstanceOf(InvalidStatusTransitionException.class)
 			.hasMessage(Messages.INVALID_STATUS_TRANSITION.formatted(OrderStatus.ENTREGUE, OrderStatus.EM_PREPARO));
 		assertThat(order.getStatus()).isEqualTo(OrderStatus.ENTREGUE);
+		// A tentativa recusada não deixa rastro na linha do tempo
+		assertThat(order.getStatusHistory()).hasSize(4);
 	}
 
 }

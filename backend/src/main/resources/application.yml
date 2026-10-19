@@ -14,19 +14,50 @@ spring:
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate:
-      ddl-auto: update
+      # O esquema é das migrações do Flyway (db/migration); o Hibernate só confere se bate com as entidades
+      ddl-auto: validate
     open-in-view: false
     properties:
       # A ordenação padrão do Hibernate 7 reordena colunas e, no dialeto SQLite, pode gerar
       # "id" sem tipo — que deixa de ser alias do rowid e fica NULL. "legacy" mantém a ordem declarada.
       hibernate.column_ordering_strategy: legacy
+      # Itens e histórico dos pedidos de uma página chegam em uma consulta por coleção (sem N+1)
+      hibernate.default_batch_fetch_size: 100
+  flyway:
+    # Bancos criados antes do Flyway (pelo ddl-auto) são adotados como versão 1, sem recriar nada
+    baseline-on-migrate: true
+    baseline-version: 1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  info:
+    build:
+      enabled: true
+    java:
+      enabled: true
+  # O Nginx só repassa /api/** e a documentação: /actuator fica acessível apenas dentro da rede do Docker
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  swagger-ui:
+    operations-sorter: method
+    tags-sorter: alpha
+    # O token informado em "Authorize" sobrevive a um recarregamento da página
+    persist-authorization: true
+  default-produces-media-type: application/json
 
 logging:
   level:
     root: INFO
     com.foody.delivery: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [%15.15thread] %-40.40logger{39} : %msg%n"
+    # requestId: o mesmo id em todas as linhas de uma requisição e no header X-Request-Id da resposta
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [%15.15thread] [%X{requestId:-}] %-40.40logger{39} : %msg%n"
 
 app:
   jwt:

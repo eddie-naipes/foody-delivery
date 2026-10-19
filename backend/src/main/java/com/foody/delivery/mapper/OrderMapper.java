@@ -2,7 +2,6 @@ package com.foody.delivery.mapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -12,9 +11,12 @@ import com.foody.delivery.dto.request.AddressRequest;
 import com.foody.delivery.dto.request.CreateOrderRequest;
 import com.foody.delivery.dto.request.OrderItemRequest;
 import com.foody.delivery.dto.response.OrderResponse;
+import com.foody.delivery.dto.response.StatusChangeResponse;
+import com.foody.delivery.dto.response.UserSummaryResponse;
 import com.foody.delivery.model.Address;
 import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderItem;
+import com.foody.delivery.model.OrderStatusChange;
 import com.foody.delivery.model.User;
 
 /**
@@ -27,9 +29,9 @@ public interface OrderMapper {
 
 	OrderResponse toResponse(Order order);
 
-	List<OrderResponse> toResponses(List<Order> orders);
+	StatusChangeResponse toResponse(OrderStatusChange change);
 
-	OrderResponse.CreatedBy toCreatedBy(User user);
+	UserSummaryResponse toUserSummary(User user);
 
 	/**
 	 * Valores monetários sempre com 2 casas: o SQLite devolve 45.00 como 45, e a API

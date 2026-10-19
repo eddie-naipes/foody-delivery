@@ -1,6 +1,9 @@
 package com.foody.delivery.controller;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -167,16 +170,124 @@ class OrderControllerIT {
 			.andExpect(jsonPath("$.fieldErrors[*].field", hasItem("deliveryAddress")));
 	}
 
+	private ResultActions list(String query) throws Exception {
+		return mockMvc.perform(get("/api/orders" + query).header("Authorization", "Bearer " + token));
+	}
+
 	@Test
-	void listReturnsOrdersMostRecentFirst() throws Exception {
+	void listReturnsFirstPageMostRecentFirst() throws Exception {
 		createOrderAndGetId("Primeiro");
 		createOrderAndGetId("Segundo");
 
-		mockMvc.perform(get("/api/orders").header("Authorization", "Bearer " + token))
+		list("")
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.length()").value(2))
-			.andExpect(jsonPath("$[0].customerName").value("Segundo"))
-			.andExpect(jsonPath("$[1].customerName").value("Primeiro"));
+			.andExpect(jsonPath("$.content.length()").value(2))
+			.andExpect(jsonPath("$.content[0].customerName").value("Segundo"))
+			.andExpect(jsonPath("$.content[1].customerName").value("Primeiro"))
+			.andExpect(jsonPath("$.page").value(0))
+			.andExpect(jsonPath("$.size").value(20))
+			.andExpect(jsonPath("$.totalElements").value(2))
+			.andExpect(jsonPath("$.totalPages").value(1));
+	}
+
+	@Test
+	void listPaginates() throws Exception {
+		createOrderAndGetId("Primeiro");
+		createOrderAndGetId("Segundo");
+		createOrderAndGetId("Terceiro");
+
+		list("?page=1&size=2")
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content.length()").value(1))
+			.andExpect(jsonPath("$.content[0].customerName").value("Primeiro"))
+			.andExpect(jsonPath("$.totalElements").value(3))
+			.andExpect(jsonPath("$.totalPages").value(2));
+	}
+
+	@Test
+	void listFiltersByStatus() throws Exception {
+		createOrderAndGetId("Recebido");
+		Integer preparing = createOrderAndGetId("Em preparo");
+		patchStatus(preparing, "{\"status\": \"EM_PREPARO\"}");
+
+		list("?status=EM_PREPARO")
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.content.length()").value(1))
+			.andExpect(jsonPath("$.content[0].customerName").value("Em preparo"))
+			.andExpect(jsonPath("$.totalElements").value(1));
+	}
+
+	@Test
+	void listWithUnknownStatusReturns400() throws Exception {
+		list("?status=PRONTO")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(Messages.INVALID_PARAMETER.formatted("status")));
+	}
+
+	@Test
+	void listWithPageOutOfBoundsReturns400PerParameter() throws Exception {
+		list("?page=-1&size=101")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(Messages.VALIDATION_FAILED))
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'page')].message").value(hasItem(Messages.PAGE_MIN)))
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'size')].message")
+				.value(hasItem(Messages.PAGE_SIZE_RANGE)));
+	}
+
+	@Test
+	void listWithZeroSizeReturns400() throws Exception {
+		list("?size=0")
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.fieldErrors[?(@.field == 'size')].message")
+				.value(hasItem(Messages.PAGE_SIZE_RANGE)));
+	}
+
+	@Test
+	void statusCountIncludesEveryStatus() throws Exception {
+		createOrderAndGetId("A");
+		Integer canceled = createOrderAndGetId("B");
+		patchStatus(canceled, "{\"status\": \"CANCELADO\"}");
+
+		mockMvc.perform(get("/api/orders/status-count").header("Authorization", "Bearer " + token))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.total").value(2))
+			.andExpect(jsonPath("$.byStatus.RECEBIDO").value(1))
+			.andExpect(jsonPath("$.byStatus.EM_PREPARO").value(0))
+			.andExpect(jsonPath("$.byStatus.SAIU_PARA_ENTREGA").value(0))
+			.andExpect(jsonPath("$.byStatus.ENTREGUE").value(0))
+			.andExpect(jsonPath("$.byStatus.CANCELADO").value(1));
+	}
+
+	@Test
+	void historyRecordsEveryChangeWithAuthorAndTime() throws Exception {
+		Integer id = createOrderAndGetId("Maria Silva");
+		patchStatus(id, "{\"status\": \"EM_PREPARO\"}");
+
+		patchStatus(id, "{\"status\": \"SAIU_PARA_ENTREGA\"}")
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.statusHistory.length()").value(3))
+			.andExpect(jsonPath("$.statusHistory[2].status").value("SAIU_PARA_ENTREGA"))
+			.andExpect(jsonPath("$.statusHistory[2].changedAt").isNotEmpty());
+
+		mockMvc.perform(get("/api/orders/{id}", id).header("Authorization", "Bearer " + token))
+			.andExpect(jsonPath("$.statusHistory[*].status").value(
+					contains("RECEBIDO", "EM_PREPARO", "SAIU_PARA_ENTREGA")))
+			.andExpect(jsonPath("$.statusHistory[*].changedBy.name").value(
+					everyItem(is("Operador"))));
+	}
+
+	@Test
+	void rejectedTransitionLeavesHistoryUntouched() throws Exception {
+		Integer id = createOrderAndGetId("Maria Silva");
+		patchStatus(id, "{\"status\": \"ENTREGUE\"}").andExpect(status().is(422));
+
+		mockMvc.perform(get("/api/orders/{id}", id).header("Authorization", "Bearer " + token))
+			.andExpect(jsonPath("$.statusHistory.length()").value(1));
+	}
+
+	@Test
+	void responseCarriesRequestIdHeader() throws Exception {
+		list("").andExpect(header().string("X-Request-Id", matchesPattern("[0-9a-f-]{36}")));
 	}
 
 	@Test

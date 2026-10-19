@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -30,6 +32,8 @@ public class User implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	// No SQLite a chave autoincrementada precisa ser INTEGER (alias do rowid), não BIGINT
+	@JdbcTypeCode(SqlTypes.INTEGER)
 	private Long id;
 
 	@Column(nullable = false, length = 100)

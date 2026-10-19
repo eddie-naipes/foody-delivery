@@ -7,7 +7,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import com.foody.delivery.exception.InvalidStatusTransitionException;
 
@@ -24,6 +26,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +34,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * Pedido de delivery. Sem setters: o status só muda por {@link #changeStatus}, que
- * aplica as regras de transição, e itens só entram por {@link #addItem}.
+ * aplica as regras de transição e registra a mudança no histórico, e itens só entram
+ * por {@link #addItem}.
  */
 @Entity
 @Table(name = "orders")
@@ -41,6 +45,8 @@ public class Order {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	// No SQLite a chave autoincrementada precisa ser INTEGER (alias do rowid), não BIGINT
+	@JdbcTypeCode(SqlTypes.INTEGER)
 	private Long id;
 
 	@Column(nullable = false)
@@ -54,6 +60,11 @@ public class Order {
 
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItem> items = new ArrayList<>();
+
+	/** Linha do tempo do pedido, da criação ao status atual. */
+	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy("id ASC")
+	private List<OrderStatusChange> statusHistory = new ArrayList<>();
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
@@ -76,6 +87,7 @@ public class Order {
 		this.customerPhone = customerPhone;
 		this.deliveryAddress = deliveryAddress;
 		this.createdBy = createdBy;
+		statusHistory.add(new OrderStatusChange(this, status, createdBy));
 	}
 
 	public void addItem(OrderItem item) {
@@ -88,15 +100,20 @@ public class Order {
 		return items.stream().map(OrderItem::getSubtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	public void changeStatus(OrderStatus next) {
+	public void changeStatus(OrderStatus next, User changedBy) {
 		if (!status.canTransitionTo(next)) {
 			throw new InvalidStatusTransitionException(status, next);
 		}
 		this.status = next;
+		statusHistory.add(new OrderStatusChange(this, next, changedBy));
 	}
 
 	public List<OrderItem> getItems() {
 		return Collections.unmodifiableList(items);
+	}
+
+	public List<OrderStatusChange> getStatusHistory() {
+		return Collections.unmodifiableList(statusHistory);
 	}
 
 }

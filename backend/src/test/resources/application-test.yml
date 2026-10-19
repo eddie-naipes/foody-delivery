@@ -1,6 +1,5 @@
 spring:
   datasource:
-    url: jdbc:sqlite:file:testdb?mode=memory&cache=shared
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
+    # Um banco em memória por contexto do Spring (random.uuid), criado pelas migrações do Flyway:
+    # os testes exercitam o mesmo esquema da produção e um contexto não enxerga os dados de outro
+    url: jdbc:sqlite:file:testdb-${random.uuid}?mode=memory&cache=shared

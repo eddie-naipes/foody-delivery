@@ -14,6 +14,7 @@ import com.foody.delivery.dto.request.OrderItemRequest;
 import com.foody.delivery.dto.response.AddressResponse;
 import com.foody.delivery.dto.response.OrderItemResponse;
 import com.foody.delivery.dto.response.OrderResponse;
+import com.foody.delivery.dto.response.StatusChangeResponse;
 import com.foody.delivery.model.Address;
 import com.foody.delivery.model.Order;
 import com.foody.delivery.model.OrderItem;
@@ -55,6 +56,24 @@ class OrderMapperTest {
 		assertThat(pizza.quantity()).isEqualTo(2);
 		assertThat(pizza.unitPrice()).isEqualByComparingTo("45.00");
 		assertThat(pizza.subtotal()).isEqualByComparingTo("90.00");
+
+		assertThat(response.statusHistory()).singleElement().satisfies(change -> {
+			assertThat(change.status()).isEqualTo(OrderStatus.RECEBIDO);
+			assertThat(change.changedBy().name()).isEqualTo("Operador");
+		});
+	}
+
+	@Test
+	void toResponseKeepsHistoryOrderAndAllowsUnknownAuthor() {
+		Order order = new Order("Maria", "1199", new Address("Rua", "1", null, "Centro", "SP", "01001000"), user);
+		order.changeStatus(OrderStatus.EM_PREPARO, null);
+
+		OrderResponse response = mapper.toResponse(order);
+
+		assertThat(response.statusHistory()).extracting(StatusChangeResponse::status)
+			.containsExactly(OrderStatus.RECEBIDO, OrderStatus.EM_PREPARO);
+		// Registros reconstruídos pela migração V3 não têm autor
+		assertThat(response.statusHistory().get(1).changedBy()).isNull();
 	}
 
 	@Test
