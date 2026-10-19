@@ -55,7 +55,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Operador\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -79,7 +84,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Outro\",\n  \"email\": \"{{email}}\",\n  \"password\": \"outrasenha\"\n}"
@@ -104,7 +114,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"\",\n  \"email\": \"nao-e-email\",\n  \"password\": \"123\"\n}"
@@ -139,7 +154,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{messyEmail}}\",\n  \"password\": \"{{password}}\"\n}"
@@ -163,7 +183,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"senha-errada\"\n}"
@@ -212,13 +237,20 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"]
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{tamperedToken}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tamperedToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/orders"
           }
         },
@@ -249,8 +281,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -277,8 +315,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -304,8 +348,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -332,7 +382,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/orders/{{orderId}}"
           }
         },
@@ -352,7 +407,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/orders/999999"
           }
         },
@@ -372,7 +432,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/orders/abc"
           }
         },
@@ -393,10 +458,19 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{ \"status\": \"EM_PREPARO\" }" },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"EM_PREPARO\" }"
+            },
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
           }
         },
@@ -417,10 +491,19 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{ \"status\": \"SAIU_PARA_ENTREGA\" }" },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"SAIU_PARA_ENTREGA\" }"
+            },
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
           }
         },
@@ -441,10 +524,19 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{ \"status\": \"ENTREGUE\" }" },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"ENTREGUE\" }"
+            },
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
           }
         },
@@ -465,10 +557,19 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{ \"status\": \"CANCELADO\" }" },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"CANCELADO\" }"
+            },
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
           }
         },
@@ -491,15 +592,24 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
             ],
-            "body": { "mode": "raw", "raw": "{ \"status\": \"PRONTO\" }" },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"status\": \"PRONTO\" }"
+            },
             "url": "{{baseUrl}}/api/orders/{{orderId}}/status"
           }
         },
         {
-          "name": "Listar pedidos",
+          "name": "Listar pedidos (primeira página)",
           "event": [
             {
               "listen": "test",
@@ -508,27 +618,192 @@
                 "exec": [
                   "pm.test('200 OK', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
+                  "pm.test('Página com metadados', () => {",
+                  "  pm.expect(body).to.include.keys('content', 'page', 'size', 'totalElements', 'totalPages');",
+                  "  pm.expect(body.page).to.eql(0);",
+                  "  pm.expect(body.size).to.eql(20);",
+                  "});",
                   "pm.test('Pedido mais recente primeiro, com status atual', () => {",
-                  "  pm.expect(body[0].id).to.eql(pm.collectionVariables.get('orderId'));",
-                  "  pm.expect(body[0].status).to.eql('ENTREGUE');",
-                  "});"
+                  "  pm.expect(body.content[0].id).to.eql(pm.collectionVariables.get('orderId'));",
+                  "  pm.expect(body.content[0].status).to.eql('ENTREGUE');",
+                  "});",
+                  "pm.test('Resposta identificada por X-Request-Id', () => pm.expect(pm.response.headers.get('X-Request-Id')).to.match(/^[0-9a-f-]{8,64}$/));"
                 ]
               }
             }
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/orders"
+          }
+        },
+        {
+          "name": "Linha do tempo do pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const history = pm.response.json().statusHistory;",
+                  "pm.test('Todas as etapas, em ordem', () => pm.expect(history.map(h => h.status)).to.eql(['RECEBIDO', 'EM_PREPARO', 'SAIU_PARA_ENTREGA', 'ENTREGUE']));",
+                  "pm.test('Cada etapa com autor e horário', () => history.forEach(h => {",
+                  "  pm.expect(h.changedBy.name).to.eql('Operador');",
+                  "  pm.expect(h.changedAt).to.be.a('string');",
+                  "}));",
+                  "pm.test('A transição recusada (422) não entrou no histórico', () => pm.expect(history).to.have.length(4));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Listar filtrando por status, 5 por página",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Só pedidos entregues', () => {",
+                  "  pm.expect(body.content.length).to.be.within(1, 5);",
+                  "  body.content.forEach(order => pm.expect(order.status).to.eql('ENTREGUE'));",
+                  "});",
+                  "pm.test('Tamanho de página respeitado', () => pm.expect(body.size).to.eql(5));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders?status=ENTREGUE&size=5"
+          }
+        },
+        {
+          "name": "Paginação fora dos limites → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "const fields = pm.response.json().fieldErrors.map(e => e.field);",
+                  "pm.test('Aponta página e tamanho', () => pm.expect(fields).to.include.members(['page', 'size']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders?page=-1&size=500"
+          }
+        },
+        {
+          "name": "Contagem por status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Todos os status, inclusive os com zero', () => pm.expect(body.byStatus).to.have.all.keys('RECEBIDO', 'EM_PREPARO', 'SAIU_PARA_ENTREGA', 'ENTREGUE', 'CANCELADO'));",
+                  "pm.test('Total é a soma dos status', () => pm.expect(body.total).to.eql(Object.values(body.byStatus).reduce((a, b) => a + b, 0)));",
+                  "pm.test('Conta o pedido entregue', () => pm.expect(body.byStatus.ENTREGUE).to.be.at.least(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/orders/status-count"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plataforma",
+      "item": [
+        {
+          "name": "Documentação OpenAPI (pública)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK sem token', () => pm.response.to.have.status(200));",
+                  "const doc = pm.response.json();",
+                  "pm.test('Descreve a autenticação Bearer', () => pm.expect(doc.components.securitySchemes.bearerAuth.scheme).to.eql('bearer'));",
+                  "pm.test('Documenta as rotas de pedidos', () => pm.expect(doc.paths).to.include.keys('/api/orders', '/api/orders/{id}/status', '/api/orders/status-count'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/v3/api-docs"
           }
         }
       ]
     }
   ],
   "variable": [
-    { "key": "email", "value": "" },
-    { "key": "password", "value": "" },
-    { "key": "token", "value": "" },
-    { "key": "orderId", "value": "" }
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    }
   ]
 }
