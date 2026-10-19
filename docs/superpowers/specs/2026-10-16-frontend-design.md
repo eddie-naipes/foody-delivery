@@ -70,9 +70,10 @@ Regras de dependência: `features/*` usam `shared/*`; `shared` não conhece feat
 | `muted` | `#5B534F` | texto secundário |
 | `line` | `#EFE6E2` | bordas de cartões e divisórias |
 | `brand` | `#D30101` | ação principal, número do pedido, aba ativa |
-| `coral` | `#FF5C5C` | destaque da marca ("Delivery"), hover |
+| `coral` | `#FF5C5C` | hover e detalhes decorativos |
+| `coral-ink` | `#D93636` | "Delivery" do logotipo (coral legível sobre branco, 4,6:1) |
 | `blush` | `#FFF0EF` | fundo de avisos e do total |
-| status | `#2563EB` recebido, `#C2410C` em preparo, `#7C3AED` saiu, `#15803D` entregue, `#6B7280` cancelado |
+| status | `#1D4ED8` recebido, `#B13A0A` em preparo, `#6D28D9` saiu, `#13733A` entregue, `#5D6470` cancelado (ao menos 5:1 nas etiquetas) |
 
 O botão principal usa o vermelho `#D30101` (e não o coral do site) porque texto branco sobre coral não atinge contraste legível.
 
