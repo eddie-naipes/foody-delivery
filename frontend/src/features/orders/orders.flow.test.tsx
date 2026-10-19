@@ -51,6 +51,65 @@ describe('lista de pedidos', () => {
     expect(screen.getByText('Nenhum pedido cancelado.')).toBeInTheDocument()
   })
 
+  it('pagina a lista de 12 em 12', async () => {
+    const operator = seedUser()
+    for (let i = 1; i <= 13; i++) seedOrder(operator, { customerName: `Cliente ${i}` })
+    const { user } = renderApp({ route: '/pedidos', loggedAs: operator })
+
+    // Mais recentes primeiro: a primeira página vai do 13 ao 2
+    expect(await screen.findByText('Cliente 13')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(12)
+    expect(screen.queryByText('Cliente 1')).not.toBeInTheDocument()
+    expect(screen.getByText('Página 1 de 2 (13 pedidos)')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+
+    expect(await screen.findByText('Cliente 1')).toBeInTheDocument()
+    expect(screen.queryByText('Cliente 13')).not.toBeInTheDocument()
+    expect(screen.getByText('Página 2 de 2 (13 pedidos)')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled()
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0)
+  })
+
+  it('não mostra paginação quando tudo cabe em uma página', async () => {
+    const operator = seedUser()
+    seedOrder(operator)
+    renderApp({ route: '/pedidos', loggedAs: operator })
+
+    await screen.findByText('Maria Silva')
+    expect(screen.queryByRole('navigation', { name: 'Paginação' })).not.toBeInTheDocument()
+  })
+
+  it('abre já filtrado quando o filtro está no endereço', async () => {
+    const operator = seedUser()
+    seedOrder(operator, { customerName: 'Ana', status: 'RECEBIDO' })
+    seedOrder(operator, { customerName: 'Bruno', status: 'ENTREGUE' })
+    renderApp({ route: '/pedidos?status=ENTREGUE', loggedAs: operator })
+
+    expect(await screen.findByText('Bruno')).toBeInTheDocument()
+    expect(screen.queryByText('Ana')).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Entregue\s*1/ })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('ignora filtro e página inválidos no endereço', async () => {
+    const operator = seedUser()
+    seedOrder(operator, { customerName: 'Ana' })
+    renderApp({ route: '/pedidos?status=PRONTO&pagina=abc', loggedAs: operator })
+
+    expect(await screen.findByText('Ana')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Todos/ })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('vai para a última página quando a pedida não existe mais', async () => {
+    const operator = seedUser()
+    for (let i = 1; i <= 13; i++) seedOrder(operator, { customerName: `Cliente ${i}` })
+    renderApp({ route: '/pedidos?pagina=9', loggedAs: operator })
+
+    expect(await screen.findByText('Cliente 1')).toBeInTheDocument()
+    expect(screen.getByText('Página 2 de 2 (13 pedidos)')).toBeInTheDocument()
+  })
+
   it('explica quando a lista não carrega', async () => {
     const operator = seedUser()
     server.use(http.get('*/api/orders', () => apiError(500, 'Erro interno do servidor')))
@@ -234,6 +293,37 @@ describe('detalhe do pedido', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(MESSAGES.orderChangedElsewhere)
     expect(await screen.findByRole('button', { name: 'Marcar como entregue' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Pedido #0001' }).parentElement).toHaveTextContent('Saiu para entrega')
+  })
+
+  it('mostra a linha do tempo com quem mudou cada status', async () => {
+    const operator = seedUser()
+    seedOrder(operator)
+    const { user } = renderApp({ route: '/pedidos/1', loggedAs: operator })
+
+    const history = await screen.findByRole('region', { name: 'Histórico' })
+    expect(within(history).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(history).getByText('Recebido')).toBeInTheDocument()
+    expect(within(history).getByText(/por Operador/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Iniciar preparo' }))
+
+    await screen.findByText('Preparo iniciado')
+    const steps = within(screen.getByRole('region', { name: 'Histórico' })).getAllByRole('listitem')
+    expect(steps).toHaveLength(2)
+    expect(steps[1]).toHaveTextContent('Em preparo')
+    expect(steps[1]).toHaveTextContent('por Operador')
+  })
+
+  it('mostra etapas antigas sem autor quando ele não foi registrado', async () => {
+    const operator = seedUser()
+    const order = seedOrder(operator, { status: 'EM_PREPARO' })
+    order.statusHistory[1] = { ...order.statusHistory[1]!, changedBy: null }
+    renderApp({ route: '/pedidos/1', loggedAs: operator })
+
+    const steps = within(await screen.findByRole('region', { name: 'Histórico' })).getAllByRole('listitem')
+    expect(steps[0]).toHaveTextContent('por Operador')
+    expect(steps[1]).toHaveTextContent('Em preparo')
+    expect(steps[1]).not.toHaveTextContent('por')
   })
 
   it('avisa quando o pedido não existe', async () => {

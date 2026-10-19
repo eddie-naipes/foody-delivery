@@ -11,6 +11,7 @@ import { addressLines } from '../address'
 import { Receipt } from '../components/Receipt'
 import { StatusBadge } from '../components/StatusBadge'
 import { StatusRail } from '../components/StatusRail'
+import { StatusTimeline } from '../components/StatusTimeline'
 import { useOrder, useUpdateOrderStatus } from '../hooks'
 import { availableTransitions, STATUS_META } from '../status'
 import type { Order, OrderStatus } from '../types'
@@ -134,6 +135,8 @@ function OrderDetail({ order }: { order: Order }) {
               ) : null}
             </div>
           )}
+
+          <StatusTimeline history={order.statusHistory} />
         </section>
 
         <Receipt

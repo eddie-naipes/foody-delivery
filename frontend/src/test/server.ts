@@ -1,8 +1,8 @@
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 
-import { canTransition } from '@/features/orders/status'
-import type { CreateOrderInput, OrderStatus } from '@/features/orders/types'
+import { ORDER_STATUSES, canTransition } from '@/features/orders/status'
+import type { CreateOrderInput, Order, OrderStatus } from '@/features/orders/types'
 
 import { db, tokenFor, type TestUser } from './db'
 
@@ -48,7 +48,27 @@ export const handlers = [
 
   http.get('*/api/orders', ({ request }) => {
     if (!authenticatedUser(request)) return unauthorized()
-    return HttpResponse.json([...db.orders].reverse())
+    const params = new URL(request.url).searchParams
+    const status = params.get('status')
+    const page = Number(params.get('page') ?? 0)
+    const size = Number(params.get('size') ?? 20)
+    const matching = [...db.orders].reverse().filter((order) => !status || order.status === status)
+    return HttpResponse.json({
+      content: matching.slice(page * size, (page + 1) * size),
+      page,
+      size,
+      totalElements: matching.length,
+      totalPages: Math.ceil(matching.length / size),
+    })
+  }),
+
+  // Antes de /api/orders/:id, que também casaria com "status-count"
+  http.get('*/api/orders/status-count', ({ request }) => {
+    if (!authenticatedUser(request)) return unauthorized()
+    const byStatus = Object.fromEntries(
+      ORDER_STATUSES.map((status) => [status, db.orders.filter((order) => order.status === status).length]),
+    )
+    return HttpResponse.json({ total: db.orders.length, byStatus })
   }),
 
   http.get('*/api/orders/:id', ({ request, params }) => {
@@ -67,15 +87,17 @@ export const handlers = [
       ...item,
       subtotal: item.quantity * item.unitPrice,
     }))
-    const order = {
+    const author = { id: user.id, name: user.name }
+    const order: Order = {
       id: db.sequence.order++,
       customerName: body.customerName,
       customerPhone: body.customerPhone,
       deliveryAddress: { ...body.deliveryAddress, zipCode: body.deliveryAddress.zipCode.replace('-', '') },
       items,
       totalAmount: items.reduce((sum, item) => sum + item.subtotal, 0),
-      status: 'RECEBIDO' as OrderStatus,
-      createdBy: { id: user.id, name: user.name },
+      status: 'RECEBIDO',
+      createdBy: author,
+      statusHistory: [{ status: 'RECEBIDO', changedBy: author, changedAt: now }],
       createdAt: now,
       updatedAt: now,
     }
@@ -84,7 +106,8 @@ export const handlers = [
   }),
 
   http.patch('*/api/orders/:id/status', async ({ request, params }) => {
-    if (!authenticatedUser(request)) return unauthorized()
+    const user = authenticatedUser(request)
+    if (!user) return unauthorized()
     const order = db.orders.find((o) => o.id === Number(params.id))
     if (!order) return apiError(404, `Pedido ${String(params.id)} não encontrado`)
     const { status } = (await request.json()) as { status: OrderStatus }
@@ -93,6 +116,7 @@ export const handlers = [
     }
     order.status = status
     order.updatedAt = new Date().toISOString()
+    order.statusHistory.push({ status, changedBy: { id: user.id, name: user.name }, changedAt: order.updatedAt })
     return HttpResponse.json(order)
   }),
 ]

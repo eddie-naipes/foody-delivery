@@ -60,9 +60,16 @@ export function seedOrder(
     totalAmount: 99.9,
     status: 'RECEBIDO' as OrderStatus,
     createdBy: { id: createdBy.id, name: createdBy.name },
+    statusHistory: [],
     createdAt: now,
     updatedAt: now,
     ...overrides,
+  }
+  // Mesma regra do back: nasce RECEBIDO por quem criou; um status inicial diferente vira a etapa seguinte
+  const author = { id: createdBy.id, name: createdBy.name }
+  order.statusHistory = [{ status: 'RECEBIDO', changedBy: author, changedAt: order.createdAt }]
+  if (order.status !== 'RECEBIDO') {
+    order.statusHistory.push({ status: order.status, changedBy: author, changedAt: order.updatedAt })
   }
   db.orders.push(order)
   return order
