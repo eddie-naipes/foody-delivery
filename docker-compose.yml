@@ -16,7 +16,8 @@ services:
       - foody-data:/app/data
     healthcheck:
       # A imagem da JRE não tem curl: testa se a porta da API já aceita conexões
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080' || exit 1"]
+      # A imagem não tem curl: HTTP "na mão" pelo bash até o health check do Actuator (que verifica o banco)
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /actuator/health HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q UP <&3' || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
